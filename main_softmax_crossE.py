@@ -14,9 +14,11 @@ from torch.utils.data import Dataset, DataLoader
 from prettytable import PrettyTable
 from tqdm import tqdm
 from utils import draw_result_pic
+from sklearn.model_selection import KFold
+from torch.utils.data.dataset import Subset
 
 batch_size = 2  # 每次训练样本数
-Head_num = 2  # self-attention的头数
+Head_num = 1  # self-attention的头数
 Windows_num = 145  # 时间窗的个数
 Vector_len = int(116 * 115 / 2)  # 上三角展开后的长度
 data_num = -1  # 数据集个数(自动获取)
@@ -36,10 +38,13 @@ class GetData(Dataset):
         self.label = []
         files = os.listdir(root_path)
 
+        # cnt = 6
         for file in tqdm(files, desc='Datasets', file=sys.stdout):
             file_path = root_path + "/" + file
             self.data.append(torch.tensor(pd.read_csv(file_path).values))  # 转化为tensor类型
-        # print("数据集数量：", len(self.data))
+            # cnt -= 1
+            # if cnt == 0:
+            #     break
 
         label_info = pd.read_csv(label_path)
         label_info = label_info[(label_info["SITE_ID"] == "NYU") & (label_info["reason"] != 2)]
@@ -115,11 +120,11 @@ class Module(nn.Module):
         # 注意力模块
         self.Attention = nn.Sequential(
             SelfAttention(Head_num, Vector_len, Vector_len * Head_num),  # self-attention的输入输出shape一样
-            nn.Linear(Vector_len*Head_num, 2000),  # 6670降2000
+            nn.Linear(Vector_len * Head_num, 2000),  # 6670降2000
             SelfAttention(Head_num, 2000, 2000 * Head_num),
-            nn.Linear(2000*Head_num, 200),  # 2000降200
+            nn.Linear(2000 * Head_num, 200),  # 2000降200
             SelfAttention(Head_num, 200, 200 * Head_num),
-            nn.Linear(200*Head_num, 50)  # 200降50
+            nn.Linear(200 * Head_num, 50)  # 200降50
         )
 
         # 展开、降维、softmax模块
@@ -132,120 +137,112 @@ class Module(nn.Module):
             nn.Softmax(dim=1)
         )
 
-        self.l1 = nn.Linear(7250, 1000)
-        self.r1 = nn.ReLU()
-        self.l2 = nn.Linear(1000, 200)
-        self.r2 = nn.ReLU()
-        self.l3 = nn.Linear(200, 2)
-        self.s1 = nn.Softmax(dim=1)
-
     def forward(self, x):
         x = self.Attention(x)
-        x = x.view(batch_size, -1)  # 对每个样本展开成向量，7250和注意力模块最后的维度有关系，后续可能需要改一下让他自适应，暂时需要手改
-        # output = self.GetRes(x)
-        x = self.l1(x)
-
-        x = self.r1(x)
-        x = self.l2(x)
-        x = self.r2(x)
-        x = self.l3(x)
-        output = self.s1(x)
+        x = x.view(x.shape[0], -1)  # 对每个样本展开成向量，7250和注意力模块最后的维度有关系，后续可能需要改一下让他自适应，暂时需要手改
+        output = self.GetRes(x)
         return output
 
 
 def Entire_main():
-    dataset = GetData(root_path, label_path)
-    train_size = int(len(dataset) * 0.7)
-    test_size = len(dataset) - train_size
-    train_dataset, test_dataset = torch.utils.data.random_split(dataset, [train_size, test_size])  # 划分测试集、训练集
-
-    train_dataloader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
-    test_dataloader = DataLoader(test_dataset, batch_size=batch_size, shuffle=True)
+    all_data = GetData(root_path, label_path)
+    kf = KFold(n_splits=5, shuffle=True, random_state=0)
 
     module = Module()
     module = module.cuda()
     loss_fn = nn.CrossEntropyLoss()
     loss_fn = loss_fn.cuda()
     optimizer = torch.optim.SGD(module.parameters(), lr=0.1)
-
     epoch = 20  # 训练轮次
-    entire_time = time.time()
+
     # 画图用， 保存每一个epoch的值
     train_acc_list = []
     train_loss_list = []
     test_acc_list = []
     test_loss_list = []
-    # 表格 prettyTable
     p_table = PrettyTable(["epoch", "train_loss", "train_acc", "test_loss", "test_acc", "time(s)"])
     for epoch_i in range(epoch):
+        # 每轮训练存储K个数据
+        train_acc_list_kf = []
+        train_loss_list_kf = []
+
+        test_acc_list_kf = []
+        test_loss_list_kf = []
+
         start_time = time.time()
-        # print('第{}轮训练'.format(epoch_i + 1))
-        total_train_loss = 0
-        total_train_acc = 0
+        for train_index, test_index in kf.split(all_data):
+            train_fold = Subset(all_data, train_index)
+            test_fold = Subset(all_data, test_index)
 
-        module.train()  # 设置训练模式，本身没啥用
-        for data in tqdm(train_dataloader, desc=f'Epoch {epoch_i + 1}', file=sys.stdout):
-            x, y = data
-            x = x.cuda()
-            y = y.cuda()
-            y = y.to(torch.float32)
-            output = module(x)
+            train_size = len(train_index)
+            test_size = len(test_index)
 
-            loss = loss_fn(output, y)
-            total_train_loss += loss
+            train_dataloader = DataLoader(train_fold, batch_size=batch_size, shuffle=True)
+            test_dataloader = DataLoader(test_fold, batch_size=batch_size, shuffle=True)
 
-            optimizer.zero_grad()
-            loss.backward()
-            optimizer.step()
-            acc = 0
-            for i, res in enumerate(output):
-                if res[0] > res[1]:
-                    acc = acc + 1 if y[i][0] > y[i][1] else acc
-                if res[0] < res[1]:
-                    acc = acc + 1 if y[i][0] < y[i][1] else acc
-            total_train_acc += acc
-        # print("训练集损失值为:{}".format(total_train_loss))
-        # print("训练集准确率为:{}".format(total_train_acc / train_size))
-        # print("该轮训练耗时：{}s".format(time.time() - start_time))
-        # 画图数据
-        train_acc_list.append(float(total_train_acc))
-        train_loss_list.append(float(total_train_loss))
-
-        module.eval()  # 设置测试模式
-        total_test_loss = 0
-        total_test_acc = 0
-        with torch.no_grad():
-            for data in test_dataloader:
+            # 对于该折的所有dataloader的计量
+            total_train_loss = 0
+            total_train_acc = 0
+            module.train()  # 设置训练模式，本身没啥用
+            for data in tqdm(train_dataloader,desc=f'Epoch{epoch_i+1}',file=sys.stdout):
                 x, y = data
                 x = x.cuda()
                 y = y.cuda()
-                y = y.to(torch.float32)
+                y = y.to(torch.float32)  # 这一步似乎很费时间
                 output = module(x)
 
                 loss = loss_fn(output, y)
-                total_test_loss += loss
+                total_train_loss += loss
 
-                acc = 0
+                optimizer.zero_grad()
+                loss.backward()
+                optimizer.step()
+                optimizer.step()
+                train_acc = 0
                 for i, res in enumerate(output):
-                    # print(y[i][0] > y[i][1], y[i][0] < y[i][1])
                     if res[0] > res[1]:
-                        acc = acc + 1 if y[i][0] > y[i][1] else acc
+                        train_acc = train_acc + 1 if y[i][0] > y[i][1] else train_acc
                     if res[0] < res[1]:
-                        acc = acc + 1 if y[i][0] < y[i][1] else acc
-                total_test_acc += acc
-        # print("测试集损失值为:{}".format(total_test_loss))
-        # print("测试集准确率为:{}".format(total_test_acc / test_size))
-        # print("总耗时:{} s".format(time.time() - entire_time))
-        # 画图数据
-        test_acc_list.append(float(total_test_acc))
-        test_loss_list.append(float(total_test_loss))
+                        train_acc = train_acc + 1 if y[i][0] < y[i][1] else train_acc
+                total_train_acc += train_acc
+            # 该折的训练结束，将指标传入
+            train_acc_list_kf.append(float(total_train_acc / train_size))
+            train_loss_list_kf.append(float(total_train_loss))
 
+            total_test_loss = 0
+            total_test_acc = 0
+            module.eval()  # 设置测试模式
+            with torch.no_grad():
+                for data in test_dataloader:
+                    x, y = data
+                    x = x.cuda()
+                    y = y.cuda()
+                    y = y.to(torch.float32)
+                    output = module(x)
+
+                    loss = loss_fn(output, y)
+                    total_test_loss += loss
+                    test_acc = 0
+                    for i, res in enumerate(output):
+                        if res[0] > res[1]:
+                            test_acc = test_acc + 1 if y[i][0] > y[i][1] else test_acc
+                        if res[0] < res[1]:
+                            test_acc = test_acc + 1 if y[i][0] < y[i][1] else test_acc
+                    total_test_acc += test_acc
+                test_acc_list_kf.append(float(total_test_acc / test_size))
+                test_loss_list_kf.append(float(total_test_loss))
+
+        # 该轮结束
+        train_acc_list.append(np.mean(train_acc_list_kf))
+        train_loss_list.append(np.mean(train_loss_list_kf))
+        test_acc_list.append(np.mean(test_acc_list_kf))
+        test_loss_list.append(np.mean(test_loss_list_kf))
         p_table.add_row(
-            [epoch_i + 1, float(total_train_loss), float(total_train_acc / train_size), float(total_test_loss),
-             float(total_test_acc / test_size), time.time() - start_time])
+            [epoch_i + 1, float(train_loss_list[-1]), float(train_acc_list[-1]), float(test_loss_list[-1]),
+             float(test_acc_list[-1]), time.time() - start_time])
         print(p_table)
 
-    # 传结果list格式： [train(list), test(list)]
+        # 传结果list格式： [train(list), test(list)]
     draw_result_pic(save_path='data166_epoch10_acc.png', res=[train_acc_list, test_acc_list], start_epoch=5,
                     pic_title='acc')
     draw_result_pic(save_path='data166_epoch10_loss.png', res=[test_acc_list, test_loss_list], start_epoch=5,
