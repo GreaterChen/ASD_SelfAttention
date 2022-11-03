@@ -16,7 +16,7 @@ from tqdm import tqdm
 from utils import draw_result_pic
 
 batch_size = 2  # 每次训练样本数
-Head_num = 1  # self-attention的头数
+Head_num = 2  # self-attention的头数
 Windows_num = 145  # 时间窗的个数
 Vector_len = int(116 * 115 / 2)  # 上三角展开后的长度
 data_num = -1  # 数据集个数(自动获取)
@@ -45,7 +45,6 @@ class GetData(Dataset):
         label_info = label_info[(label_info["SITE_ID"] == "NYU") & (label_info["reason"] != 2)]
         label = list(zip(label_info.group_1.values, label_info.group_2.values))
         self.label = torch.tensor(label)
-        pass
 
     def __getitem__(self, idx):
         return self.data[idx], self.label[idx]
@@ -116,11 +115,11 @@ class Module(nn.Module):
         # 注意力模块
         self.Attention = nn.Sequential(
             SelfAttention(Head_num, Vector_len, Vector_len * Head_num),  # self-attention的输入输出shape一样
-            nn.Linear(Vector_len, 2000),  # 6670降2000
+            nn.Linear(Vector_len*Head_num, 2000),  # 6670降2000
             SelfAttention(Head_num, 2000, 2000 * Head_num),
-            nn.Linear(2000, 200),  # 2000降200
+            nn.Linear(2000*Head_num, 200),  # 2000降200
             SelfAttention(Head_num, 200, 200 * Head_num),
-            nn.Linear(200, 50)  # 200降50
+            nn.Linear(200*Head_num, 50)  # 200降50
         )
 
         # 展开、降维、softmax模块
@@ -142,7 +141,7 @@ class Module(nn.Module):
 
     def forward(self, x):
         x = self.Attention(x)
-        x = x.view(batch_size, 7250)  # 对每个样本展开成向量，7250和注意力模块最后的维度有关系，后续可能需要改一下让他自适应，暂时需要手改
+        x = x.view(batch_size, -1)  # 对每个样本展开成向量，7250和注意力模块最后的维度有关系，后续可能需要改一下让他自适应，暂时需要手改
         # output = self.GetRes(x)
         x = self.l1(x)
 
@@ -185,7 +184,7 @@ def Entire_main():
         total_train_acc = 0
 
         module.train()  # 设置训练模式，本身没啥用
-        for data in tqdm(train_dataloader, desc=f'Epoch {epoch_i+1}', file=sys.stdout):
+        for data in tqdm(train_dataloader, desc=f'Epoch {epoch_i + 1}', file=sys.stdout):
             x, y = data
             x = x.cuda()
             y = y.cuda()
@@ -201,9 +200,9 @@ def Entire_main():
             acc = 0
             for i, res in enumerate(output):
                 if res[0] > res[1]:
-                    acc = acc + 1 if y[i][0]>y[i][1] else acc
+                    acc = acc + 1 if y[i][0] > y[i][1] else acc
                 if res[0] < res[1]:
-                    acc = acc + 1 if y[i][0]<y[i][1] else acc
+                    acc = acc + 1 if y[i][0] < y[i][1] else acc
             total_train_acc += acc
         # print("训练集损失值为:{}".format(total_train_loss))
         # print("训练集准确率为:{}".format(total_train_acc / train_size))
@@ -241,13 +240,17 @@ def Entire_main():
         test_acc_list.append(float(total_test_acc))
         test_loss_list.append(float(total_test_loss))
 
-        p_table.add_row([epoch_i + 1, float(total_train_loss), float(total_train_acc/train_size), float(total_test_loss),
-                         float(total_test_acc/test_size), time.time() - start_time])
+        p_table.add_row(
+            [epoch_i + 1, float(total_train_loss), float(total_train_acc / train_size), float(total_test_loss),
+             float(total_test_acc / test_size), time.time() - start_time])
         print(p_table)
 
     # 传结果list格式： [train(list), test(list)]
-    draw_result_pic(save_path='data166_epoch10_acc.png', res=[train_acc_list, test_acc_list], start_epoch=5, pic_title='acc')
-    draw_result_pic(save_path='data166_epoch10_loss.png', res=[test_acc_list, test_loss_list],start_epoch=5, pic_title='loss')
+    draw_result_pic(save_path='data166_epoch10_acc.png', res=[train_acc_list, test_acc_list], start_epoch=5,
+                    pic_title='acc')
+    draw_result_pic(save_path='data166_epoch10_loss.png', res=[test_acc_list, test_loss_list], start_epoch=5,
+                    pic_title='loss')
+
 
 if __name__ == '__main__':
     Entire_main()
