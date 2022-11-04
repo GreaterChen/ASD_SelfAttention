@@ -17,8 +17,8 @@ from utils import draw_result_pic
 from sklearn.model_selection import KFold
 from torch.utils.data.dataset import Subset
 
-batch_size = 2  # 每次训练样本数
-Head_num = 2  # self-attention的头数
+batch_size = 1  # 每次训练样本数
+Head_num = 1  # self-attention的头数
 Windows_num = 145  # 时间窗的个数
 Vector_len = int(116 * 115 / 2)  # 上三角展开后的长度
 data_num = -1  # 数据集个数(自动获取)
@@ -38,13 +38,9 @@ class GetData(Dataset):
         self.label = []
         files = os.listdir(root_path)
 
-        # cnt = 6
         for file in tqdm(files, desc='Datasets', file=sys.stdout):
             file_path = root_path + "/" + file
             self.data.append(torch.tensor(pd.read_csv(file_path).values))  # 转化为tensor类型
-            # cnt -= 1
-            # if cnt == 0:
-            #     break
 
         label_info = pd.read_csv(label_path)
         label_info = label_info[(label_info["SITE_ID"] == "NYU") & (label_info["reason"] != 2)]
@@ -148,45 +144,50 @@ def Entire_main():
     all_data = GetData(root_path, label_path)
     kf = KFold(n_splits=5, shuffle=True, random_state=0)
 
-    module = Module()
-    module = module.cuda()
-    loss_fn = nn.CrossEntropyLoss()
-    loss_fn = loss_fn.cuda()
-    optimizer = torch.optim.SGD(module.parameters(), lr=0.01)
-    epoch = 20  # 训练轮次
+    train_acc_list_kf = []
+    train_loss_list_kf = []
+    test_acc_list_kf = []
+    test_loss_list_kf = []
 
-    # 画图用， 保存每一个epoch的值
-    train_acc_list = []
-    train_loss_list = []
-    test_acc_list = []
-    test_loss_list = []
-    p_table = PrettyTable(["epoch", "train_loss", "train_acc", "test_loss", "test_acc", "time(s)"])
-    for epoch_i in range(epoch):
-        # 每轮训练存储K个数据
-        train_acc_list_kf = []
-        train_loss_list_kf = []
+    split_range = 0
+    start_time = time.time()
+    for train_index, test_index in kf.split(all_data):
+        module = Module()
+        module = module.cuda()
 
-        test_acc_list_kf = []
-        test_loss_list_kf = []
+        loss_fn = nn.CrossEntropyLoss()
+        loss_fn = loss_fn.cuda()
+        optimizer = torch.optim.SGD(module.parameters(), lr=0.01)
 
-        split_range = 0
-        start_time = time.time()
-        for train_index, test_index in kf.split(all_data):
-            split_range += 1
-            train_fold = Subset(all_data, train_index)
-            test_fold = Subset(all_data, test_index)
+        p_table = PrettyTable(["epoch", "train_loss", "train_acc", "test_loss", "test_acc", "time(s)"])
 
-            train_size = len(train_index)
-            test_size = len(test_index)
+        train_fold = Subset(all_data, train_index)
+        test_fold = Subset(all_data, test_index)
 
-            train_dataloader = DataLoader(train_fold, batch_size=batch_size, shuffle=True)
-            test_dataloader = DataLoader(test_fold, batch_size=batch_size, shuffle=True)
+        train_size = len(train_index)
+        test_size = len(test_index)
 
-            # 对于该折的所有dataloader的计量
-            total_train_loss = 0
-            total_train_acc = 0
+        train_dataloader = DataLoader(train_fold, batch_size=batch_size, shuffle=True)
+        test_dataloader = DataLoader(test_fold, batch_size=batch_size, shuffle=True)
+
+        epoch = 20  # 训练轮次
+        split_range += 1
+
+        # 对该折的所有轮进行记录
+        train_acc_list = []
+        train_loss_list = []
+        test_acc_list = []
+        test_loss_list = []
+
+        for epoch_i in range(epoch):
+            # 对该折该轮的所有dataloader进行记录
+            epoch_train_loss = 0
+            epoch_train_acc = 0
+            epoch_test_loss = 0
+            epoch_test_acc = 0
+
             module.train()  # 设置训练模式，本身没啥用
-            for data in tqdm(train_dataloader,desc=f'Epoch{epoch_i+1}-fold{split_range}',file=sys.stdout):
+            for data in tqdm(train_dataloader, desc=f'Fold{split_range}-Epoch{epoch_i + 1}', file=sys.stdout):
                 x, y = data
                 x = x.cuda()
                 y = y.cuda()
@@ -194,7 +195,7 @@ def Entire_main():
                 output = module(x)
 
                 loss = loss_fn(output, y)
-                total_train_loss += loss
+                epoch_train_loss += loss
 
                 optimizer.zero_grad()
                 loss.backward()
@@ -206,13 +207,11 @@ def Entire_main():
                         train_acc = train_acc + 1 if y[i][0] > y[i][1] else train_acc
                     if res[0] < res[1]:
                         train_acc = train_acc + 1 if y[i][0] < y[i][1] else train_acc
-                total_train_acc += train_acc
-            # 该折的训练结束，将指标传入
-            train_acc_list_kf.append(float(total_train_acc / train_size))
-            train_loss_list_kf.append(float(total_train_loss))
+                epoch_train_acc += train_acc
 
-            total_test_loss = 0
-            total_test_acc = 0
+            train_acc_list.append(float(epoch_train_acc / train_size))
+            train_loss_list.append(float(epoch_train_loss))
+
             module.eval()  # 设置测试模式
             with torch.no_grad():
                 for data in test_dataloader:
@@ -223,31 +222,36 @@ def Entire_main():
                     output = module(x)
 
                     loss = loss_fn(output, y)
-                    total_test_loss += loss
+                    epoch_test_loss += loss
                     test_acc = 0
                     for i, res in enumerate(output):
                         if res[0] > res[1]:
                             test_acc = test_acc + 1 if y[i][0] > y[i][1] else test_acc
                         if res[0] < res[1]:
                             test_acc = test_acc + 1 if y[i][0] < y[i][1] else test_acc
-                    total_test_acc += test_acc
-                test_acc_list_kf.append(float(total_test_acc / test_size))
-                test_loss_list_kf.append(float(total_test_loss))
+                    epoch_test_acc += test_acc
+            test_acc_list.append(float(epoch_test_acc / test_size))
+            test_loss_list.append(float(epoch_test_loss))
 
-        # 该轮结束
-        train_acc_list.append(np.mean(train_acc_list_kf))
-        train_loss_list.append(np.mean(train_loss_list_kf))
-        test_acc_list.append(np.mean(test_acc_list_kf))
-        test_loss_list.append(np.mean(test_loss_list_kf))
-        p_table.add_row(
-            [epoch_i + 1, float(train_loss_list[-1]), float(train_acc_list[-1]), float(test_loss_list[-1]),
-             float(test_acc_list[-1]), time.time() - start_time])
-        print(p_table)
+            p_table.add_row(
+                [epoch_i + 1, float(train_loss_list[-1]), float(train_acc_list[-1]), float(test_loss_list[-1]),
+                 float(test_acc_list[-1]), time.time() - start_time])
+            print(p_table)
 
-        # 传结果list格式： [train(list), test(list)]
-    draw_result_pic(save_path='data166_epoch10_acc.png', res=[train_acc_list, test_acc_list], start_epoch=5,
+        train_acc_list_kf.append(train_acc_list)
+        train_loss_list_kf.append(train_loss_list)
+        test_acc_list_kf.append(test_acc_list)
+        test_loss_list_kf.append(test_loss_list)
+
+    avg_train_acc = np.array(train_acc_list_kf).mean(axis=0)
+    avg_train_loss = np.array(train_loss_list_kf).mean(axis=0)
+    avg_test_acc = np.array(test_acc_list_kf).mean(axis=0)
+    avg_test_loss = np.array(test_loss_list_kf).mean(axis=0)
+
+    # 传结果list格式： [train(list), test(list)]
+    draw_result_pic(save_path='data166_epoch10_acc.png', res=[avg_train_acc, avg_test_acc], start_epoch=5,
                     pic_title='acc')
-    draw_result_pic(save_path='data166_epoch10_loss.png', res=[test_acc_list, test_loss_list], start_epoch=5,
+    draw_result_pic(save_path='data166_epoch10_loss.png', res=[avg_train_loss, avg_test_loss], start_epoch=5,
                     pic_title='loss')
 
 
