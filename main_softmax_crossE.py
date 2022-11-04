@@ -18,7 +18,7 @@ from sklearn.model_selection import KFold
 from torch.utils.data.dataset import Subset
 
 batch_size = 2  # 每次训练样本数
-Head_num = 1  # self-attention的头数
+Head_num = 2  # self-attention的头数
 Windows_num = 145  # 时间窗的个数
 Vector_len = int(116 * 115 / 2)  # 上三角展开后的长度
 data_num = -1  # 数据集个数(自动获取)
@@ -152,7 +152,7 @@ def Entire_main():
     module = module.cuda()
     loss_fn = nn.CrossEntropyLoss()
     loss_fn = loss_fn.cuda()
-    optimizer = torch.optim.SGD(module.parameters(), lr=0.1)
+    optimizer = torch.optim.SGD(module.parameters(), lr=0.01)
     epoch = 20  # 训练轮次
 
     # 画图用， 保存每一个epoch的值
@@ -169,8 +169,10 @@ def Entire_main():
         test_acc_list_kf = []
         test_loss_list_kf = []
 
+        split_range = 0
         start_time = time.time()
         for train_index, test_index in kf.split(all_data):
+            split_range += 1
             train_fold = Subset(all_data, train_index)
             test_fold = Subset(all_data, test_index)
 
@@ -184,7 +186,7 @@ def Entire_main():
             total_train_loss = 0
             total_train_acc = 0
             module.train()  # 设置训练模式，本身没啥用
-            for data in tqdm(train_dataloader,desc=f'Epoch{epoch_i+1}',file=sys.stdout):
+            for data in tqdm(train_dataloader,desc=f'Epoch{epoch_i+1}-fold{split_range}',file=sys.stdout):
                 x, y = data
                 x = x.cuda()
                 y = y.cuda()
