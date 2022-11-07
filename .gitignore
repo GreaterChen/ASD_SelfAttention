@@ -4,6 +4,8 @@
 
 
 raw_data/rois_aal_csv_pearson_NYU/
+raw_data/rois_aal_csv_pearson/
+raw_data/rois_aal_csv_pearson_NYU.zip
 
 # User-specific stuff
 .idea/**/workspace.xml

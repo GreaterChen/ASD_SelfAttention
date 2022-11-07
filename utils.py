@@ -13,4 +13,5 @@ def draw_result_pic(save_path:str, res:list, start_epoch:int, pic_title:str):
     plt.title(pic_title)
     plt.legend()
     plt.savefig(save_path, dpi=500, bbox_inches='tight')
+    plt.show()
 

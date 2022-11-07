@@ -19,13 +19,11 @@ class Module(nn.Module):
         self.Attention = nn.Sequential(
             SelfAttention(Head_num, Vector_len, Vector_len * Head_num),  # self-attention的输入输出shape一样
             nn.Linear(Vector_len * Head_num, 4000),  # 6670降4000
-            nn.ReLU(),
+
             SelfAttention(Head_num, 4000, 4000 * Head_num),
             nn.Linear(4000 * Head_num, 500),  # 4000降2000
-            nn.ReLU(),
             # SelfAttention(Head_num, 2000, 2000 * Head_num),
             # nn.Linear(2000 * Head_num, 500),  # 200降500
-            # nn.ReLU(),
             SelfAttention(Head_num, 500, 500 * Head_num),
             nn.Linear(500 * Head_num, 50),  # 500降50
         )

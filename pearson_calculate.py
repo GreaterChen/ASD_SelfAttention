@@ -59,16 +59,15 @@ def data_static(file_path):
 
 
 if __name__ == '__main__':
-    root_path = 'raw_data/rois_aal_csv_separate/NYU'
-    root_save_path = 'raw_data/rois_aal_csv_pearson_NYU'
+    root_path = 'raw_data/rois_aal_csv'
     files = os.listdir(root_path)
+    os.mkdir('raw_data/rois_aal_csv_pearson')
+    root_save_path = 'raw_data/rois_aal_csv_pearson'
     cnt = 0
     for file in files:
         file_path = root_path + '/' + file
         save_path = root_save_path + '/' + file
-        pd.DataFrame(data_dynamic(root_path + '/' + file, 30, 1)).to_csv(save_path,index = False,header=False)
+        pd.DataFrame(data_dynamic(root_path + '/' + file, 30, 1)).to_csv(save_path, index=False, header=False)
         cnt += 1
-    print(cnt)
-
-
-
+        if cnt % 5 == 0:
+            print(cnt)

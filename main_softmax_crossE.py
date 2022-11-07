@@ -46,8 +46,7 @@ def Entire_main():
 
         loss_fn = nn.CrossEntropyLoss()
         loss_fn = loss_fn.cuda()
-        optimizer = torch.optim.RMSprop(module.parameters(), lr=learn_rate)
-        # scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=30, gamma=0.1)
+        optimizer = torch.optim.SGD(module.parameters(), lr=learn_rate)
 
         p_table = PrettyTable(["epoch", "train_loss", "train_acc", "test_loss", "test_acc", "time(s)"])
 
@@ -145,7 +144,7 @@ def Entire_main():
     avg_test_acc = np.array(test_acc_list_kf).mean(axis=0)
     avg_test_loss = np.array(test_loss_list_kf).mean(axis=0)
 
-    with open("result_avg.txt", "w") as f:
+    with open("result_avg.txt", "a") as f:
         f.write(str(avg_train_acc))
         f.write(str(avg_train_loss))
         f.write(str(avg_test_acc))
