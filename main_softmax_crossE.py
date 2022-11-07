@@ -17,12 +17,12 @@ from sklearn.model_selection import KFold
 from torch.utils.data.dataset import Subset
 
 batch_size = 2  # 每次训练样本数
-Head_num = 2  # self-attention的头数
+Head_num = 1  # self-attention的头数
 Windows_num = 145  # 时间窗的个数
 Vector_len = int(116 * 115 / 2)  # 上三角展开后的长度
 data_num = -1  # 数据集个数(自动获取)
-epoch = 20  # 训练轮次
-learn_rate = 0.005
+epoch = 100  # 训练轮次
+learn_rate = 0.01
 
 root_path = "raw_data/rois_aal_csv_pearson_NYU"
 label_path = "description/label.csv"
@@ -115,23 +115,35 @@ class Module(nn.Module):
     def __init__(self):
         super(Module, self).__init__()
         self.middle_size = -1
+        size_1 = 6670
+        size_2 = 6670 * 2
         # 注意力模块
-        self.Attention = nn.Sequential(
-            SelfAttention(Head_num, Vector_len, Vector_len * Head_num),  # self-attention的输入输出shape一样
-            nn.Linear(Vector_len * Head_num, 4000),  # 6670降4000
-            nn.ReLU(),
-            SelfAttention(Head_num, 4000, 4000 * Head_num),
-            nn.Linear(4000 * Head_num, 2000),  # 4000降2000
-            nn.ReLU(),
-            SelfAttention(Head_num, 2000, 2000 * Head_num),
-            nn.Linear(2000 * Head_num, 500),  # 200降500
-            nn.ReLU(),
-            SelfAttention(Head_num, 500, 500 * Head_num),
-            nn.Linear(500 * Head_num, 50),  # 500降50
-            nn.ReLU()
+        # self.Attention = nn.Sequential(
+        self.s1 = SelfAttention(Head_num, Vector_len, Vector_len * Head_num)  # self-attention的输入输出shape一样
+        self.l11 = nn.Linear(Vector_len * Head_num, size_2)
+        self.relu1 = nn.ReLU()
+        self.l12 = nn.Linear(size_2, size_1)  # 6670降4000
 
+        self.s2 = SelfAttention(Head_num, size_1, size_1 * Head_num)
+        self.l21 = nn.Linear(Vector_len * Head_num, size_2)
+        self.relu2 = nn.ReLU()
+        self.l22 = nn.Linear(size_2, size_1)  # 6670降4000
 
-        )
+        self.s3 = SelfAttention(Head_num, size_1, size_1 * Head_num)
+        self.l31 = nn.Linear(Vector_len * Head_num, size_2)
+        self.relu3 = nn.ReLU()
+        self.l32 = nn.Linear(size_2, size_1)  # 6670降4000
+        self.relu4 = nn.ReLU()
+
+        self.l4 = nn.Linear(size_1, 4000)
+        self.relu5 = nn.ReLU()
+        self.l5 = nn.Linear(4000, 2000)
+        self.relu6 = nn.ReLU()
+        self.l6 = nn.Linear(2000, 500)
+        self.relu7 = nn.ReLU()
+        self.l7 = nn.Linear(500, 50)
+
+        # )
 
         # 展开、降维、softmax模块
         self.GetRes = nn.Sequential(
@@ -144,7 +156,32 @@ class Module(nn.Module):
         )
 
     def forward(self, x):
-        x = self.Attention(x)
+        o11 = self.s1(x)
+        o12 = self.l11(o11)
+        o13 = self.relu1(o12)
+        o14 = self.l12(o13)
+
+        o21 = self.s2(o11 + o14)
+        o22 = self.l21(o21)
+        o23 = self.relu2(o22)
+        o24 = self.l22(o23)
+
+        o31 = self.s3(o21 + o24)
+        o32 = self.l31(o31)
+        o33 = self.relu3(o32)
+        o34 = self.l32(o33)
+        o35 = self.relu4(o34)
+
+        o41 = self.l4(o35)
+        o42 = self.relu5(o41)
+
+        o51 = self.l5(o42)
+        o52 = self.relu6(o51)
+
+        o61 = self.l6(o52)
+        o62 = self.relu7(o61)
+
+        x = self.l7(o62)
         x = x.view(x.shape[0], -1)  # 对每个样本展开成向量，7250和注意力模块最后的维度有关系，后续可能需要改一下让他自适应，暂时需要手改
         output = self.GetRes(x)
         return output
