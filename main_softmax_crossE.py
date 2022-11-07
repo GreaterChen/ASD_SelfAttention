@@ -9,7 +9,6 @@ import time
 import torch
 from torch import nn
 import torch.nn.functional as F
-import torchviz
 from torch.utils.data import Dataset, DataLoader
 from prettytable import PrettyTable
 from tqdm import tqdm
@@ -17,11 +16,13 @@ from utils import draw_result_pic
 from sklearn.model_selection import KFold
 from torch.utils.data.dataset import Subset
 
-batch_size = 1  # 每次训练样本数
-Head_num = 1  # self-attention的头数
+batch_size = 2  # 每次训练样本数
+Head_num = 2  # self-attention的头数
 Windows_num = 145  # 时间窗的个数
 Vector_len = int(116 * 115 / 2)  # 上三角展开后的长度
 data_num = -1  # 数据集个数(自动获取)
+epoch = 20  # 训练轮次
+learn_rate = 0.005
 
 root_path = "raw_data/rois_aal_csv_pearson_NYU"
 label_path = "description/label.csv"
@@ -36,9 +37,9 @@ class GetData(Dataset):
         '''
         self.data = []
         self.label = []
-        files = os.listdir(root_path)
+        self.files = os.listdir(root_path)
 
-        for file in tqdm(files, desc='Datasets', file=sys.stdout):
+        for file in tqdm(self.files, desc='Datasets', file=sys.stdout):
             file_path = root_path + "/" + file
             self.data.append(torch.tensor(pd.read_csv(file_path).values))  # 转化为tensor类型
 
@@ -113,14 +114,23 @@ class SelfAttention(nn.Module):
 class Module(nn.Module):
     def __init__(self):
         super(Module, self).__init__()
+        self.middle_size = -1
         # 注意力模块
         self.Attention = nn.Sequential(
             SelfAttention(Head_num, Vector_len, Vector_len * Head_num),  # self-attention的输入输出shape一样
-            nn.Linear(Vector_len * Head_num, 2000),  # 6670降2000
+            nn.Linear(Vector_len * Head_num, 4000),  # 6670降4000
+            nn.ReLU(),
+            SelfAttention(Head_num, 4000, 4000 * Head_num),
+            nn.Linear(4000 * Head_num, 2000),  # 4000降2000
+            nn.ReLU(),
             SelfAttention(Head_num, 2000, 2000 * Head_num),
-            nn.Linear(2000 * Head_num, 200),  # 2000降200
-            SelfAttention(Head_num, 200, 200 * Head_num),
-            nn.Linear(200 * Head_num, 50)  # 200降50
+            nn.Linear(2000 * Head_num, 500),  # 200降500
+            nn.ReLU(),
+            SelfAttention(Head_num, 500, 500 * Head_num),
+            nn.Linear(500 * Head_num, 50),  # 500降50
+            nn.ReLU()
+
+
         )
 
         # 展开、降维、softmax模块
@@ -157,7 +167,7 @@ def Entire_main():
 
         loss_fn = nn.CrossEntropyLoss()
         loss_fn = loss_fn.cuda()
-        optimizer = torch.optim.SGD(module.parameters(), lr=0.01)
+        optimizer = torch.optim.SGD(module.parameters(), lr=learn_rate)
 
         p_table = PrettyTable(["epoch", "train_loss", "train_acc", "test_loss", "test_acc", "time(s)"])
 
@@ -170,7 +180,6 @@ def Entire_main():
         train_dataloader = DataLoader(train_fold, batch_size=batch_size, shuffle=True)
         test_dataloader = DataLoader(test_fold, batch_size=batch_size, shuffle=True)
 
-        epoch = 20  # 训练轮次
         split_range += 1
 
         # 对该折的所有轮进行记录
@@ -192,6 +201,7 @@ def Entire_main():
                 x = x.cuda()
                 y = y.cuda()
                 y = y.to(torch.float32)  # 这一步似乎很费时间
+
                 output = module(x)
 
                 loss = loss_fn(output, y)
@@ -219,6 +229,7 @@ def Entire_main():
                     x = x.cuda()
                     y = y.cuda()
                     y = y.to(torch.float32)
+
                     output = module(x)
 
                     loss = loss_fn(output, y)
@@ -237,6 +248,10 @@ def Entire_main():
                 [epoch_i + 1, float(train_loss_list[-1]), float(train_acc_list[-1]), float(test_loss_list[-1]),
                  float(test_acc_list[-1]), time.time() - start_time])
             print(p_table)
+            if epoch_i == epoch - 1:
+                with open("result.txt", "a") as f:
+                    f.write(str(p_table))
+                    f.write("\n")
 
         train_acc_list_kf.append(train_acc_list)
         train_loss_list_kf.append(train_loss_list)
@@ -247,6 +262,12 @@ def Entire_main():
     avg_train_loss = np.array(train_loss_list_kf).mean(axis=0)
     avg_test_acc = np.array(test_acc_list_kf).mean(axis=0)
     avg_test_loss = np.array(test_loss_list_kf).mean(axis=0)
+
+    with open("result_avg.txt", "w") as f:
+        f.write(avg_train_acc)
+        f.write(avg_train_loss)
+        f.write(avg_test_acc)
+        f.write(avg_test_loss)
 
     # 传结果list格式： [train(list), test(list)]
     draw_result_pic(save_path='data166_epoch10_acc.png', res=[avg_train_acc, avg_test_acc], start_epoch=5,
