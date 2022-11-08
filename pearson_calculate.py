@@ -16,6 +16,7 @@ def expand(p):
 def init(path):
     data_init = pd.read_csv(path)
     data = np.matrix(data_init)
+    data = data[:146, :]
     row = data.shape[0]
     col = data.shape[1]
     return data, row, col
