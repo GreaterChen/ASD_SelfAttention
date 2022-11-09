@@ -1,7 +1,9 @@
 import os
+import sys
 
 import numpy as np
 import pandas as pd
+from tqdm import tqdm
 
 
 def expand(p):
@@ -64,11 +66,7 @@ if __name__ == '__main__':
     files = os.listdir(root_path)
     os.mkdir('raw_data/rois_aal_csv_pearson')
     root_save_path = 'raw_data/rois_aal_csv_pearson'
-    cnt = 0
-    for file in files:
+    for file in tqdm(files, desc='Datasets', file=sys.stdout):
         file_path = root_path + '/' + file
         save_path = root_save_path + '/' + file
         pd.DataFrame(data_dynamic(root_path + '/' + file, 30, 1)).to_csv(save_path, index=False, header=False)
-        cnt += 1
-        if cnt % 5 == 0:
-            print(cnt)
