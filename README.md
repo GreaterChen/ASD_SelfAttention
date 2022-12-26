@@ -7,9 +7,11 @@ Judge ASD by self-attention
 
 Pearson数据过大，需先运行pearson_calculate.py（或者找我要压缩包文件然后直接上传再解压）
 
-结果在raw_data/rois_aal_csv_pearson（似乎autodl有专门存数据的地方/root/autodl-tmp/，放在这可能会更快？没试过）
+结果在raw_data/rois_aal_csv_pearson
 
-标签在description/label_678.csv
+（autodl有专门存数据的地方/root/autodl-tmp/，官方说放在这会更快，同时也方便迁移到别的机器上）
+
+标签在description/label_674.csv
 
 直接读入即可，二者顺序已对准
 
