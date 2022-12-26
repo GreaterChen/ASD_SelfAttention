@@ -17,13 +17,13 @@ class GetData(Dataset):
         self.label = []
         self.files = os.listdir(root_path)
 
-        for file in tqdm(self.files[:5], desc='Datasets', file=sys.stdout):
+        for file in tqdm(self.files, desc='Datasets', file=sys.stdout):
             file_path = root_path + "/" + file
             self.data.append(torch.tensor(pd.read_csv(file_path).values))  # 转化为tensor类型
 
         label_info = pd.read_csv(label_path)
         label_info = label_info[(label_info["SITE_ID"] == "NYU") & (label_info["reason"] != 2)]
-        label = list(zip(label_info.group_1.values, label_info.group_2.values))[:5]
+        label = list(zip(label_info.group_1.values, label_info.group_2.values))
         self.label = torch.tensor(label)
 
     def __getitem__(self, idx):

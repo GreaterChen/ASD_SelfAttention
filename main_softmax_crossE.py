@@ -30,26 +30,32 @@ label_path = "description/label.csv"
 
 
 def Entire_main():
-    all_data = GetData(root_path, label_path)
-    kf = KFold(n_splits=5, shuffle=True, random_state=0)
+    all_data = GetData(root_path, label_path)   # 一次性读取所有数据
+    kf = KFold(n_splits=5, shuffle=True, random_state=0)    # 初始化5折交叉验证的工具
 
+    # 对每一折进行记录
     train_acc_list_kf = []
     train_loss_list_kf = []
     test_acc_list_kf = []
     test_loss_list_kf = []
 
     split_range = 0
-    start_time = time.time()
-    for train_index, test_index in kf.split(all_data):
+    last_time = 0
+    for train_index, test_index in kf.split(all_data):  # 此处获取每一折的索引
+        # 对于每一折来说，都要从0开始训练模型
+        # 因为如果不同折训练同一个模型，会出现当前折的测试集曾被另一折当作训练集训练，导致准确率异常
         module = Module()
         module = module.cuda()
 
+        # 损失函数：交叉熵
         loss_fn = nn.CrossEntropyLoss()
         loss_fn = loss_fn.cuda()
+        # 优化器：SGD
         optimizer = torch.optim.SGD(module.parameters(), lr=learn_rate)
 
         p_table = PrettyTable(["epoch", "train_loss", "train_acc", "test_loss", "test_acc", "time(s)"])
 
+        # 此处获取真正的该折数据
         train_fold = Subset(all_data, train_index)
         test_fold = Subset(all_data, test_index)
 
@@ -67,6 +73,7 @@ def Entire_main():
         test_acc_list = []
         test_loss_list = []
 
+        # 下面开始当前折的训练
         for epoch_i in range(epoch):
             # 对该折该轮的所有dataloader进行记录
             epoch_train_loss = 0
@@ -74,7 +81,8 @@ def Entire_main():
             epoch_test_loss = 0
             epoch_test_acc = 0
 
-            module.train()  # 设置训练模式，本身没啥用
+            module.train()
+            # 下面开始当前折、当前轮的训练，即以batch_size的大小进行训练
             for data in tqdm(train_dataloader, desc=f'Fold{split_range}-Epoch{epoch_i + 1}', file=sys.stdout):
                 x, y = data
                 x = x.cuda()
@@ -98,6 +106,7 @@ def Entire_main():
                         train_acc = train_acc + 1 if y[i][0] < y[i][1] else train_acc
                 epoch_train_acc += train_acc
 
+            # 记录当前折、当前轮的数据
             train_acc_list.append(float(epoch_train_acc / train_size))
             train_loss_list.append(float(epoch_train_loss))
 
@@ -125,15 +134,15 @@ def Entire_main():
 
             p_table.add_row(
                 [epoch_i + 1, float(train_loss_list[-1]), float(train_acc_list[-1]), float(test_loss_list[-1]),
-                 float(test_acc_list[-1]), time.time() - start_time])
+                 float(test_acc_list[-1]), time.time() - last_time])
+            last_time = time.time()
             print(p_table)
             if epoch_i == epoch - 1:
                 with open("result.txt", "a") as f:
                     f.write(str(p_table))
                     f.write("\n")
 
-            # scheduler.step()
-
+        # 记录每一折的数据，是一个二维的列表
         train_acc_list_kf.append(train_acc_list)
         train_loss_list_kf.append(train_loss_list)
         test_acc_list_kf.append(test_acc_list)
