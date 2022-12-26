@@ -64,8 +64,8 @@ def data_static(file_path):
 if __name__ == '__main__':
     root_path = 'raw_data/rois_aal_csv'
     files = os.listdir(root_path)
-    os.mkdir('raw_data/rois_aal_csv_pearson')
-    root_save_path = 'raw_data/rois_aal_csv_pearson'
+    os.mkdir('../raw_data/rois_aal_csv_pearson')
+    root_save_path = '../raw_data/rois_aal_csv_pearson'
     for file in tqdm(files, desc='Datasets', file=sys.stdout):
         file_path = root_path + '/' + file
         save_path = root_save_path + '/' + file

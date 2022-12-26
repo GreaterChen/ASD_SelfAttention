@@ -17,7 +17,8 @@ import matplotlib.pyplot as plt
 plt.rcParams["font.sans-serif"] = ["SimHei"]  # 设置字体
 plt.rcParams["axes.unicode_minus"] = False  # 该语句解决图像中的“-”负号的乱码问题
 
-batch_size = 2  # 每次训练样本数
+dataset_size = 20  # 训练的样本总数,-1代表全部训练
+batch_size = 1  # 每次训练样本数
 Head_num = 1  # self-attention的头数
 Windows_num = 145  # 时间窗的个数
 Vector_len = int(116 * 115 / 2)  # 上三角展开后的长度
@@ -25,13 +26,17 @@ data_num = -1  # 数据集个数(自动获取)
 epoch = 2  # 训练轮次
 learn_rate = 0.01
 
-root_path = "raw_data/rois_aal_csv_pearson_NYU"
-label_path = "description/label.csv"
+# root_path = "/root/autodl-tmp/rois_aal_csv_pearson"
+# label_path = "label_678.csv"
+
+root_path = "../raw_data/rois_aal_csv_pearson"
+label_path = "../description/label_678.csv"
 
 
 def Entire_main():
-    all_data = GetData(root_path, label_path)   # 一次性读取所有数据
-    kf = KFold(n_splits=5, shuffle=True, random_state=0)    # 初始化5折交叉验证的工具
+    all_data = GetData(root_path, label_path,dataset_size)  # 一次性读取所有数据
+
+    kf = KFold(n_splits=5, shuffle=True, random_state=0)  # 初始化5折交叉验证的工具
 
     # 对每一折进行记录
     train_acc_list_kf = []

@@ -30,7 +30,7 @@ class Module(nn.Module):
 
         # 展开、降维、softmax模块
         self.GetRes = nn.Sequential(
-            nn.Linear(7250, 1000),
+            nn.Linear(5750, 1000),
             nn.ReLU(),
             nn.Linear(1000, 200),
             nn.ReLU(),
