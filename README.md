@@ -11,7 +11,7 @@ Pearson数据过大，需先运行pearson_calculate.py（或者找我要压缩�
 
 标签在description/label_678.csv
 
-直接读入即可，二者顺序已对准(可以运行一下code/check_order.py来确定对准了)
+直接读入即可，二者顺序已对准
 
 description/label.csv中的reason： 0代表正常，1代表时间点过少舍去，2代表有缺失值舍去
 
