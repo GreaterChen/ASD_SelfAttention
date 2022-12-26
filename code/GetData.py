@@ -1,5 +1,5 @@
 from torch.utils.data import Dataset, DataLoader
-from check_order import check_order
+from utils import CheckOrder
 import os
 import sys
 from tqdm import tqdm
@@ -24,7 +24,7 @@ class GetData(Dataset):
         self.files = self.files[:dataset_size] if dataset_size != -1 else self.files
         self.label_info = self.label_info[:dataset_size] if dataset_size != -1 else self.label_info
 
-        check_order(self.files, self.label_info)
+        CheckOrder(self.files, self.label_info)
 
         for file in tqdm(self.files, desc='Datasets', file=sys.stdout):
             file_path = root_path + "/" + file
