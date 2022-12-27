@@ -1,20 +1,12 @@
-from torch import nn
-
+from requirements import *
 from SelfAttention import SelfAttention
-
-batch_size = 4  # 每次训练样本数
-Head_num = 2  # self-attention的头数
-Windows_num = 145  # 时间窗的个数
-Vector_len = int(116 * 115 / 2)  # 上三角展开后的长度
-data_num = -1  # 数据集个数(自动获取)
-epoch = 50  # 训练轮次
-learn_rate = 0.1
+from args import *
 
 
 class Module(nn.Module):
     def __init__(self):
         super(Module, self).__init__()
-        self.middle_size = -1
+        self.middle_size = 50
         # 注意力模块
         self.Attention = nn.Sequential(
             SelfAttention(Head_num, Vector_len, Vector_len * Head_num),  # self-attention的输入输出shape一样
@@ -25,12 +17,12 @@ class Module(nn.Module):
             # SelfAttention(Head_num, 2000, 2000 * Head_num),
             # nn.Linear(2000 * Head_num, 500),  # 200降500
             SelfAttention(Head_num, 500, 500 * Head_num),
-            nn.Linear(500 * Head_num, 50),  # 500降50
+            nn.Linear(500 * Head_num, self.middle_size),  # 500降50
         )
 
         # 展开、降维、softmax模块
         self.GetRes = nn.Sequential(
-            nn.Linear(5750, 1000),
+            nn.Linear(Windows_num*self.middle_size, 1000),
             nn.ReLU(),
             nn.Linear(1000, 200),
             nn.ReLU(),

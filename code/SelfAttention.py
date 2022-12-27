@@ -1,7 +1,4 @@
-import math
-import torch
-from torch import nn
-import torch.nn.functional as F
+from requirements import *
 
 
 class SelfAttention(nn.Module):
