@@ -13,20 +13,20 @@ from torch.utils.data.dataset import Subset
 from GetData import GetData
 from Module import Module
 
-dataset_size = 20  # 训练的样本总数,-1代表全部训练,调试的时候可以改小点
+dataset_size = -1  # 训练的样本总数,-1代表全部训练,调试的时候可以改小点
 batch_size = 2  # 每次训练样本数
 Head_num = 1  # self-attention的头数
 Windows_num = 145  # 时间窗的个数
 Vector_len = int(116 * 115 / 2)  # 上三角展开后的长度
 data_num = -1  # 数据集个数(自动获取)
-epoch = 5  # 训练轮次
+epoch = 100  # 训练轮次
 learn_rate = 0.001
 
-root_path = "/root/autodl-tmp/rois_aal_csv_pearson"
+root_path = "/root/autodl-tmp/rois_aal_pkl_pearson"
 label_path = "label_674.csv"
 
 
-# root_path = "../raw_data/rois_aal_csv_pearson"
+# root_path = "../raw_data/rois_aal_pkl_pearson"
 # label_path = "../description/label_678.csv"
 
 
@@ -67,8 +67,8 @@ def Entire_main():
         train_size = len(train_index)
         test_size = len(test_index)
 
-        train_dataloader = DataLoader(train_fold, batch_size=batch_size, shuffle=True)
-        test_dataloader = DataLoader(test_fold, batch_size=batch_size, shuffle=True)
+        train_dataloader = DataLoader(train_fold, batch_size=batch_size, shuffle=True, num_workers=8, pin_memory=True)
+        test_dataloader = DataLoader(test_fold, batch_size=batch_size, shuffle=True, num_workers=8, pin_memory=True)
 
         split_range += 1
 
@@ -80,6 +80,8 @@ def Entire_main():
 
         # 下面开始当前折的训练
         for epoch_i in range(epoch):
+            if early_stop.early_stop:
+                break
             # 对该折该轮的所有dataloader进行记录
             epoch_train_loss = 0
             epoch_train_acc = 0
@@ -89,6 +91,9 @@ def Entire_main():
             module.train()
             # 下面开始当前折、当前轮的训练，即以batch_size的大小进行训练
             for data in tqdm(train_dataloader, desc=f'train-Fold{split_range}-Epoch{epoch_i + 1}', file=sys.stdout):
+                if early_stop.early_stop:
+                    print("触发早停")
+                    break
                 x, y = data
                 x = x.cuda()
                 y = y.cuda()
@@ -134,12 +139,9 @@ def Entire_main():
                         if res[0] < res[1]:
                             test_acc = test_acc + 1 if y[i][0] < y[i][1] else test_acc
                     epoch_test_acc += test_acc
-                early_stop(epoch_test_acc, module)
-                if early_stop.early_stop:
-                    print("触发早停")
-                    break
-            test_acc_list.append(float(epoch_test_acc / test_size))
+            early_stop(epoch_test_loss, module)
 
+            test_acc_list.append(float(epoch_test_acc / test_size))
             test_loss_list.append(float(epoch_test_loss))
 
             p_table.add_row(
@@ -180,9 +182,9 @@ def Entire_main():
     print(res)
 
     # 传结果list格式： [train(list), test(list)]
-    draw_result_pic(save_path='data166_epoch10_acc.png', res=[avg_train_acc, avg_test_acc], start_epoch=0,
+    draw_result_pic(save_path='data674_epoch50_5fold_acc.png', res=[avg_train_acc, avg_test_acc], start_epoch=0,
                     pic_title='acc')
-    draw_result_pic(save_path='data166_epoch10_loss.png', res=[avg_train_loss, avg_test_loss], start_epoch=0,
+    draw_result_pic(save_path='data674_epoch50_5foldloss.png', res=[avg_train_loss, avg_test_loss], start_epoch=0,
                     pic_title='loss')
 
 

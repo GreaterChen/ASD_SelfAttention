@@ -17,8 +17,8 @@ class GetData(Dataset):
         """
         self.data = []
         self.label = []
-        self.files = os.listdir(root_path)  # 排一下序，确保和标签是对准的
-        self.files.sort()
+        self.files = os.listdir(root_path)
+        self.files.sort()# 排一下序，确保和标签是对准的
         self.label_info = pd.read_csv(label_path)
 
         self.files = self.files[:dataset_size] if dataset_size != -1 else self.files
@@ -28,7 +28,10 @@ class GetData(Dataset):
 
         for file in tqdm(self.files, desc='Datasets', file=sys.stdout):
             file_path = root_path + "/" + file
-            self.data.append(torch.tensor(pd.read_csv(file_path).values))  # 转化为tensor类型
+            if 'csv' in root_path:
+                self.data.append(torch.tensor(pd.read_csv(file_path).values))  # 转化为tensor类型
+            elif 'pkl' in root_path:
+                self.data.append(torch.tensor(pd.read_pickle(file_path).values))
 
         label = list(zip(self.label_info.group_1.values, self.label_info.group_2.values))
 
