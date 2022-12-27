@@ -1,36 +1,10 @@
-import sys
-import time
-import pandas as pd
-import torch
-from torch import nn
-import torch.nn.functional as F
-from torch.utils.data import Dataset, DataLoader
-from prettytable import PrettyTable
-from tqdm import tqdm
-from utils import draw_result_pic, EarlyStopping, GetAvg
-from sklearn.model_selection import KFold
-from torch.utils.data.dataset import Subset
-from GetData import GetData
+from requirements import *
+from args import *
+from utils import draw_result_pic, EarlyStopping, GetAvg, GetData
 from Module import Module
 
-dataset_size = -1  # 训练的样本总数,-1代表全部训练,调试的时候可以改小点
-batch_size = 2  # 每次训练样本数
-Head_num = 1  # self-attention的头数
-Windows_num = 145  # 时间窗的个数
-Vector_len = int(116 * 115 / 2)  # 上三角展开后的长度
-data_num = -1  # 数据集个数(自动获取)
-epoch = 100  # 训练轮次
-learn_rate = 0.001
 
-root_path = "/root/autodl-tmp/rois_aal_pkl_pearson"
-label_path = "label_674.csv"
-
-
-# root_path = "../raw_data/rois_aal_pkl_pearson"
-# label_path = "../description/label_678.csv"
-
-
-def Entire_main():
+def Train():
     all_data = GetData(root_path, label_path, dataset_size)  # 一次性读取所有数据
 
     kf = KFold(n_splits=5, shuffle=True, random_state=0)  # 初始化5折交叉验证的工具
@@ -56,7 +30,7 @@ def Entire_main():
         # 优化器：SGD
         optimizer = torch.optim.SGD(module.parameters(), lr=learn_rate)
 
-        early_stop = EarlyStopping()
+        early_stop = EarlyStopping(patience=10, delta=0.2)
 
         p_table = PrettyTable(["epoch", "train_loss", "train_acc", "test_loss", "test_acc", "time(s)"])
 
@@ -67,8 +41,8 @@ def Entire_main():
         train_size = len(train_index)
         test_size = len(test_index)
 
-        train_dataloader = DataLoader(train_fold, batch_size=batch_size, shuffle=True, num_workers=8, pin_memory=True)
-        test_dataloader = DataLoader(test_fold, batch_size=batch_size, shuffle=True, num_workers=8, pin_memory=True)
+        train_dataloader = DataLoader(train_fold, batch_size=batch_size, shuffle=True, num_workers=12, pin_memory=True)
+        test_dataloader = DataLoader(test_fold, batch_size=batch_size, shuffle=True, num_workers=12, pin_memory=True)
 
         split_range += 1
 
@@ -139,7 +113,6 @@ def Entire_main():
                         if res[0] < res[1]:
                             test_acc = test_acc + 1 if y[i][0] < y[i][1] else test_acc
                     epoch_test_acc += test_acc
-            early_stop(epoch_test_loss, module)
 
             test_acc_list.append(float(epoch_test_acc / test_size))
             test_loss_list.append(float(epoch_test_loss))
@@ -149,10 +122,7 @@ def Entire_main():
                  float(test_acc_list[-1]), time.time() - last_time])
             last_time = time.time()
             print(p_table)
-            if epoch_i == epoch - 1:
-                with open("result.txt", "a") as f:
-                    f.write(str(p_table))
-                    f.write("\n")
+            early_stop(epoch_test_loss, module, epoch_i)
 
         # 记录每一折的数据，是一个二维的列表
         train_acc_list_kf.append(train_acc_list)
@@ -189,4 +159,10 @@ def Entire_main():
 
 
 if __name__ == '__main__':
-    Entire_main()
+    start_time = time.time()
+    Train()
+    end_time = time.time()
+    spend_time = end_time - start_time
+    min = spend_time // 60
+    sec = spend_time - 60 * min
+    print(f"模型训练总用时:{min}分{sec}秒")
