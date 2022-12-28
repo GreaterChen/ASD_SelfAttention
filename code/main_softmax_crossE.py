@@ -41,8 +41,8 @@ def Train():
         train_size = len(train_index)
         test_size = len(test_index)
 
-        train_dataloader = DataLoader(train_fold, batch_size=batch_size, shuffle=True, num_workers=num_works, pin_memory=True)
-        test_dataloader = DataLoader(test_fold, batch_size=batch_size, shuffle=True, num_workers=num_works, pin_memory=True)
+        train_dataloader = DataLoader(train_fold, batch_size=batch_size, shuffle=True, num_workers=num_workers, pin_memory=True)
+        test_dataloader = DataLoader(test_fold, batch_size=batch_size, shuffle=True, num_workers=num_workers, pin_memory=True)
 
         split_range += 1
 
