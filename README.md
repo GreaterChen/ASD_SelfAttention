@@ -5,9 +5,9 @@ Judge ASD by self-attention
 
 所有调整的参数都在code/args.py中
 
-原始数据在raw_data/rois_aal_csv（已在git中删除）
+所有需要的包在code/requirements.py中
 
-autodl有专门存数据的地方/root/autodl-tmp/，官方说放在这会更快，同时也方便迁移到别的机器上
+autodl有专门存数据的地方/root/autodl-tmp/，官方说放在这会更快，同时也方便迁移到别的机器上（确实方便）
 
 标签在description/label_674.csv
 
