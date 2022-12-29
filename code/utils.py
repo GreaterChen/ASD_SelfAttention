@@ -137,6 +137,22 @@ class EarlyStopping:
         self.val_loss_min = val_loss
 
 
+def Draw_ROC(Y_train, Y_pred, desc, fold):
+    fpr, tpr, thresholds_keras = roc_curve(Y_train, Y_pred)
+    AUC = auc(fpr, tpr)
+    plt.figure()
+    plt.plot([0, 1], [0, 1], 'k--')
+    plt.plot(fpr, tpr, label="AUC={:.3f}".format(AUC))
+    plt.xlabel('FPR')
+    plt.ylabel('TPR')
+    plt.title(f'{fold}-{desc} ROC curve')
+    plt.legend()
+    plt.savefig(f"../result/pic/{fold}_roc.png", dpi=500)
+    plt.show()
+
+    return AUC
+
+
 def GetAvg(a):
     max_len = 0
     for item in a:

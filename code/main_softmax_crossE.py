@@ -1,10 +1,16 @@
+import os
+
+import pandas as pd
+import torch
+
 from requirements import *
 from args import *
-from utils import draw_result_pic, EarlyStopping, GetAvg, GetData
+from utils import draw_result_pic, EarlyStopping, GetAvg, GetData, Draw_ROC
 from Module import Module
 
 
 def Train():
+    global Y_train, Y_pred, epoch_i, auc_list
     all_data = GetData(root_path, label_path, dataset_size)  # 一次性读取所有数据
 
     kf = KFold(n_splits=5, shuffle=True, random_state=0)  # 初始化5折交叉验证的工具
@@ -15,13 +21,20 @@ def Train():
     test_acc_list_kf = []
     test_loss_list_kf = []
 
+    SEN_list_kf = []
+    SPE_list_kf = []
+    auc_pd = pd.DataFrame()
+
     split_range = 0
     last_time = time.time()
     k = 0  # 表征第几折
     for train_index, test_index in kf.split(all_data):  # 此处获取每一折的索引
         # 对于每一折来说，都要从0开始训练模型
         # 因为如果不同折训练同一个模型，会出现当前折的测试集曾被另一折当作训练集训练，导致准确率异常
-        module = Module()
+        if pre_train:
+            module = torch.load(f"../pretrain_module/pretrain_{k}.pt")
+        else:
+            module = Module()
         module = module.cuda()
 
         # 损失函数：交叉熵
@@ -30,9 +43,9 @@ def Train():
         # 优化器：SGD
         optimizer = torch.optim.SGD(module.parameters(), lr=learn_rate)
 
-        early_stop = EarlyStopping()
+        early_stop = EarlyStopping(patience=EarlyStop_patience)
 
-        p_table = PrettyTable(["epoch", "train_loss", "train_acc", "test_loss", "test_acc", "time(s)"])
+        p_table = PrettyTable(["epoch", "train_loss", "train_acc", "test_loss", "test_acc", "SEN", "SPE", "time(s)"])
 
         # 此处获取真正的该折数据
         train_fold = Subset(all_data, train_index)
@@ -54,6 +67,10 @@ def Train():
         test_acc_list = []
         test_loss_list = []
 
+        SEN_list = []
+        SPE_list = []
+        auc_list = []
+
         # 下面开始当前折的训练
         for epoch_i in range(epoch):
             if early_stop.early_stop:
@@ -63,6 +80,14 @@ def Train():
             epoch_train_acc = 0
             epoch_test_loss = 0
             epoch_test_acc = 0
+
+            # 评价指标
+            TP = 0
+            FN = 0
+            FP = 0
+            TN = 0
+            Y_pred = []
+            Y_train = []
 
             module.train()
             # 下面开始当前折、当前轮的训练，即以batch_size的大小进行训练
@@ -78,11 +103,14 @@ def Train():
                 output = module(x)
 
                 loss = loss_fn(output, y)
+                if Flood:
+                    flood = abs((loss - flood_value)) + flood_value
+                else:
+                    flood = loss
                 epoch_train_loss += loss
 
                 optimizer.zero_grad()
-                loss.backward()
-                optimizer.step()
+                flood.backward()
                 optimizer.step()
                 train_acc = 0
                 for i, res in enumerate(output):
@@ -110,22 +138,56 @@ def Train():
                     epoch_test_loss += loss
                     test_acc = 0
                     for i, res in enumerate(output):
+                        pred_label = 1 if res[0] > res[1] else 0
+                        Y_pred.append(res[0])
+                        Y_train.append(y[i][0])
                         if res[0] > res[1]:
-                            test_acc = test_acc + 1 if y[i][0] > y[i][1] else test_acc
+                            if y[i][0] > y[i][1]:  # 预测有病实际有病
+                                TP += 1
+                            else:  # 预测有病实际没病
+                                FP += 1
                         if res[0] < res[1]:
-                            test_acc = test_acc + 1 if y[i][0] < y[i][1] else test_acc
+                            if y[i][0] > y[i][1]:  # 预测没病实际有病
+                                FN += 1
+                            else:  # 预测没病实际没病
+                                TN += 1
                     epoch_test_acc += test_acc
 
-            test_acc_list.append(float(epoch_test_acc / test_size))
+            ACC = (TP + TN) / (TP + TN + FP + FN)  # 准确率
+            SEN = TP / (TP + FN)  # 灵敏度
+            SPE = TN / (TN + FP)  # 特异性
+
+            SEN_list.append(SEN)
+            SPE_list.append(SPE)
+            test_acc_list.append(ACC)
             test_loss_list.append(float(epoch_test_loss))
 
+            if (epoch_i + 1) % 10 == 0:
+                auc = Draw_ROC(Y_train, Y_pred, epoch_i + 1, k + 1)
+                auc_list.append(auc)
+
+            if epoch_i + 1 == 50:
+                torch.save(module.state_dict(), f"../pretrain_module/pretrain_{k + 1}.pt")
+
             p_table.add_row(
-                [epoch_i + 1, float(train_loss_list[-1]), float(train_acc_list[-1]), float(test_loss_list[-1]),
-                 float(test_acc_list[-1]), time.time() - last_time])
+                [epoch_i + 1,
+                 format(float(train_loss_list[-1]), '.3f'),
+                 format(float(train_acc_list[-1]), '.3f'),
+                 format(float(test_loss_list[-1]), '.3f'),
+                 format(float(test_acc_list[-1]), '.3f'),
+                 format(float(SEN), '.3f'),
+                 format(float(SPE), '.3f'),
+                 format(float(time.time() - last_time), '2f')])
+
             last_time = time.time()
             print(p_table)
-            if epoch_i >= 30:
-                early_stop(epoch_test_loss, module)
+            if EarlyStop:
+                if epoch_i >= 50:
+                    early_stop(epoch_test_loss, module)
+
+        auc = Draw_ROC(Y_train, Y_pred, epoch_i + 1, k + 1)
+        auc_list.append(auc)
+        auc_pd = pd.concat([pd.DataFrame({f'第{k + 1}轮': auc_list}), auc_pd])
 
         draw_result_pic([train_acc_list, test_acc_list], 0, f'{k + 1}Fold_acc')
         draw_result_pic([train_loss_list, test_loss_list], 0, f'{k + 1}Fold_loss')
@@ -136,11 +198,16 @@ def Train():
         test_acc_list_kf.append(test_acc_list)
         test_loss_list_kf.append(test_loss_list)
 
+        SEN_list_kf.append(SEN_list)
+        SPE_list_kf.append(SPE_list)
+
         K_Fold_res = pd.DataFrame()
         K_Fold_res['训练集损失值'] = train_loss_list_kf[k]
         K_Fold_res['训练集准确率'] = train_acc_list_kf[k]
         K_Fold_res['测试集损失值'] = test_loss_list_kf[k]
         K_Fold_res['测试集准确率'] = test_acc_list_kf[k]
+        K_Fold_res['灵敏度'] = SEN_list_kf[k]
+        K_Fold_res['特异性'] = SPE_list_kf[k]
         K_Fold_res.to_csv(f"../result/{k + 1}_Fold.csv")
         k += 1
 
@@ -149,13 +216,19 @@ def Train():
     avg_test_acc = GetAvg(test_acc_list_kf)
     avg_test_loss = GetAvg(test_loss_list_kf)
 
+    avg_sen = GetAvg(SEN_list_kf)
+    avg_spe = GetAvg(SPE_list_kf)
+
+    auc_pd.to_csv("../res/auc.scv")
+
     res = pd.DataFrame()
     res['训练集准确率'] = avg_train_acc
     res['测试集准确率'] = avg_test_acc
     res['训练集损失值'] = avg_train_loss
     res['测试集损失值'] = avg_test_loss
-    res.to_csv("../result/res.csv")
-    print(res)
+    res['灵敏度'] = avg_sen
+    res['特异性'] = avg_spe
+    res.to_csv("../result/result.csv")
 
     # 传结果list格式： [train(list), test(list)]
     draw_result_pic(res=[avg_train_acc, avg_test_acc],
@@ -167,10 +240,15 @@ def Train():
 
 
 if __name__ == '__main__':
+    if not os.path.exists("../result"):
+        os.makedirs("../result")
+    if not os.path.exists("../pretrain_module"):
+        os.makedirs("../pretrain_module")
+
     start_time = time.time()
     Train()
     end_time = time.time()
     spend_time = end_time - start_time
     min = spend_time // 60
-    sec = spend_time - 60 * min
+    sec = int(spend_time - 60 * min)
     print(f"模型训练总用时:{min}分{sec}秒")
