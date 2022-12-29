@@ -30,7 +30,7 @@ def Train():
         # 优化器：SGD
         optimizer = torch.optim.SGD(module.parameters(), lr=learn_rate)
 
-        early_stop = EarlyStopping(patience=10, delta=0.2)
+        early_stop = EarlyStopping()
 
         p_table = PrettyTable(["epoch", "train_loss", "train_acc", "test_loss", "test_acc", "time(s)"])
 
@@ -41,8 +41,10 @@ def Train():
         train_size = len(train_index)
         test_size = len(test_index)
 
-        train_dataloader = DataLoader(train_fold, batch_size=batch_size, shuffle=True, num_workers=num_workers, pin_memory=True)
-        test_dataloader = DataLoader(test_fold, batch_size=batch_size, shuffle=True, num_workers=num_workers, pin_memory=True)
+        train_dataloader = DataLoader(train_fold, batch_size=batch_size, shuffle=True, num_workers=num_workers,
+                                      pin_memory=True)
+        test_dataloader = DataLoader(test_fold, batch_size=batch_size, shuffle=True, num_workers=num_workers,
+                                     pin_memory=True)
 
         split_range += 1
 
@@ -122,7 +124,11 @@ def Train():
                  float(test_acc_list[-1]), time.time() - last_time])
             last_time = time.time()
             print(p_table)
-            early_stop(epoch_test_loss, module, epoch_i)
+            if epoch_i >= 30:
+                early_stop(epoch_test_loss, module)
+
+        draw_result_pic([train_acc_list, test_acc_list], 0, f'{k + 1}Fold_acc')
+        draw_result_pic([train_loss_list, test_loss_list], 0, f'{k + 1}Fold_loss')
 
         # 记录每一折的数据，是一个二维的列表
         train_acc_list_kf.append(train_acc_list)
@@ -135,7 +141,7 @@ def Train():
         K_Fold_res['训练集准确率'] = train_acc_list_kf[k]
         K_Fold_res['测试集损失值'] = test_loss_list_kf[k]
         K_Fold_res['测试集准确率'] = test_acc_list_kf[k]
-        K_Fold_res.to_csv(f"{k + 1}_Fold.csv")
+        K_Fold_res.to_csv(f"../result/{k + 1}_Fold.csv")
         k += 1
 
     avg_train_acc = GetAvg(train_acc_list_kf)
@@ -148,13 +154,15 @@ def Train():
     res['测试集准确率'] = avg_test_acc
     res['训练集损失值'] = avg_train_loss
     res['测试集损失值'] = avg_test_loss
-    res.to_csv("res.csv")
+    res.to_csv("../result/res.csv")
     print(res)
 
     # 传结果list格式： [train(list), test(list)]
-    draw_result_pic(save_path='data674_epoch50_5fold_acc.png', res=[avg_train_acc, avg_test_acc], start_epoch=0,
+    draw_result_pic(res=[avg_train_acc, avg_test_acc],
+                    start_epoch=0,
                     pic_title='acc')
-    draw_result_pic(save_path='data674_epoch50_5foldloss.png', res=[avg_train_loss, avg_test_loss], start_epoch=0,
+    draw_result_pic(res=[avg_train_loss, avg_test_loss],
+                    start_epoch=0,
                     pic_title='loss')
 
 

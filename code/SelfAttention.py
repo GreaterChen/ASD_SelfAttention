@@ -1,31 +1,42 @@
+from math import sqrt
+
+import torch
+
 from requirements import *
 
 
 class SelfAttention(nn.Module):
-    def __init__(self, num_attention_heads, input_size, hidden_size):
-        '''
-        Self-Attention模块，注释部分为尚未用到，代码参考Zotero上CSDN的代码
+    def __init__(self, num_attention_heads, input_size, dim_qk, dim_v):
+        """
+        Self-Attention模块，代码参考Zotero上CSDN的代码
         :param num_attention_heads: 多头注意力中的头数，以老师的意思不建议多头，因为参数过多模型欠拟合
-        :param input_size: Self-Attention输入层的数量，此处为时间窗的数量
-        :param hidden_size:这个好像设置什么都OK，决定了QKV矩阵的尺寸，一般为N*N的就取值为num_attention_heads*input_size
-        '''
+        :param input_size: Self-Attention输入层的尺寸
+        :param dim_qk: QK矩阵的维度,不考虑多头
+        :param dim_v: V矩阵的维度,不考虑多头(决定了降维的输出尺寸)
+        """
         super(SelfAttention, self).__init__()
 
-        self.num_attention_heads = num_attention_heads
-        self.attention_head_size = int(hidden_size / num_attention_heads)
-        self.all_head_size = hidden_size
+        self.num_attention_heads = num_attention_heads  # 头数
+        self.signle_head_size = input_size  # 单头的尺寸
+        self.all_head_size = input_size * num_attention_heads  # 总共的尺寸
+        self.norm_fact = 1 / sqrt(dim_qk // num_attention_heads)  # 根号下dk
+        self.dim_qk = dim_qk
+        self.dim_v = dim_v
 
         # QKV三个矩阵变换
-        self.query_layer = nn.Linear(input_size, self.all_head_size)
-        self.key_layer = nn.Linear(input_size, self.all_head_size)
-        self.value_layer = nn.Linear(input_size, self.all_head_size)
+        self.query_layer = nn.Linear(self.signle_head_size, self.dim_qk * self.num_attention_heads, bias=False)
+        self.key_layer = nn.Linear(self.signle_head_size, self.dim_qk * self.num_attention_heads, bias=False)
+        self.value_layer = nn.Linear(self.signle_head_size, self.dim_v * self.num_attention_heads, bias=False)
 
         # self.dense = nn.Linear(self.attention_head_size, self.attention_head_size)
         # self.LayerNorm = LayerNorm(hidden_size, eps=1e-12)
         # self.fusion = nn.Linear(num_attention_heads, 1)
 
-    def trans_to_multiple_head(self, x):
-        new_size = x.size()[:-1] + (self.num_attention_heads, self.attention_head_size)
+    def trans_to_multiple_head(self, x, sign):
+        if sign == 'q' or sign == 'k':
+            new_size = x.size()[:-1] + (self.num_attention_heads, self.dim_qk)
+        else:  # sign == 'v'
+            new_size = x.size()[:-1] + (self.num_attention_heads, self.dim_v)
         x = x.view(*new_size)
         return x.permute(0, 2, 1, 3)
 
@@ -35,12 +46,12 @@ class SelfAttention(nn.Module):
         key = self.key_layer(x)
         value = self.value_layer(x)
 
-        query_heads = self.trans_to_multiple_head(query)
-        key_heads = self.trans_to_multiple_head(key)
-        value_heads = self.trans_to_multiple_head(value)
+        query_heads = self.trans_to_multiple_head(query, 'q')
+        key_heads = self.trans_to_multiple_head(key, 'k')
+        value_heads = self.trans_to_multiple_head(value, 'v')
 
         attention_scores = torch.matmul(query_heads, key_heads.transpose(-1, -2))
-        attention_scores = attention_scores / math.sqrt(self.attention_head_size)
+        attention_scores = attention_scores / torch.tensor(sqrt(self.dim_qk // self.num_attention_heads))
 
         attention_probs = F.softmax(attention_scores, dim=-1)
 
@@ -50,7 +61,7 @@ class SelfAttention(nn.Module):
         # context = self.fusion(context)
         # context = context.permute(0, 1, 3, 2)
         # context = context.view((1, context.size()[1], 7875))
-        new_size = context.size()[:-2] + (self.all_head_size,)
+        new_size = context.size()[:-2] + (self.dim_v*self.num_attention_heads,)
         context = context.view(*new_size)
         # hidden_states = self.dense(context)
         # hidden_states = self.LayerNorm(hidden_states + x)

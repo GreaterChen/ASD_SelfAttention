@@ -38,20 +38,48 @@ class GetData(Dataset):
         return len(self.data)
 
 
-def draw_result_pic(save_path: str, res: list, start_epoch: int, pic_title: str):
+def draw_result_pic(res: list, start_epoch: int, pic_title: str):
     x = [idx for idx in range(len(res[0]))]
     y0 = res[0]  # train
     y1 = res[1]  # test
 
-    plt.figure()
-    plt.plot(x[start_epoch:], y0[start_epoch:], label='train', c='blue')
-    plt.plot(x[start_epoch:], y1[start_epoch:], label='test', c='red')
-    plt.xlabel('epoch')
-    plt.xticks([i for i in range(start_epoch, len(y0))])
-    plt.title(pic_title)
-    plt.legend()
-    plt.savefig(save_path, dpi=500, bbox_inches='tight')
-    plt.show()
+    if 'acc' in pic_title:
+        plt.figure()
+        plt.plot(x[start_epoch:], y0[start_epoch:], label='train', c='blue')
+        plt.plot(x[start_epoch:], y1[start_epoch:], label='test', c='red')
+        plt.xlabel('epoch')
+        plt.xticks([i * 10 for i in range(len(y0) // 10)])
+        plt.title(pic_title)
+        plt.legend()
+        if 'Fold' not in pic_title:
+            plt.savefig(f'../result/pic/{pic_title}.png', dpi=500, bbox_inches='tight')
+        else:
+            plt.savefig(f'../result/pic/{pic_title}.png', dpi=500, bbox_inches='tight')
+        plt.show()
+    elif 'loss' in pic_title:
+        plt.figure()
+        plt.plot(x[start_epoch:], y0[start_epoch:], label='train', c='blue')
+        plt.xlabel('epoch')
+        plt.xticks([i * 10 for i in range(len(y0) // 10)])
+        plt.title('train' + pic_title)
+        plt.legend()
+        if 'Fold' not in pic_title:
+            plt.savefig(f'../result/pic/train_{pic_title}.png', dpi=500, bbox_inches='tight')
+        else:
+            plt.savefig(f'../result/pic/train_{pic_title}.png', dpi=500, bbox_inches='tight')
+        plt.show()
+
+        plt.figure()
+        plt.plot(x[start_epoch:], y1[start_epoch:], label='test', c='blue')
+        plt.xlabel('epoch')
+        plt.xticks([i * 10 for i in range(len(y0) // 10)])
+        plt.title('test' + pic_title)
+        plt.legend()
+        if 'Fold' not in pic_title:
+            plt.savefig(f'../result/pic/test_{pic_title}.png', dpi=500, bbox_inches='tight')
+        else:
+            plt.savefig(f'../result/pic/test_{pic_title}.png', dpi=500, bbox_inches='tight')
+        plt.show()
 
 
 class EarlyStopping:
@@ -82,23 +110,22 @@ class EarlyStopping:
         self.trace_func = trace_func
         self.best_model = None
 
-    def __call__(self, val_loss, model, epoch):
+    def __call__(self, val_loss, model):
 
         score = -val_loss
 
         if self.best_score is None:
             self.best_score = score
             self.save_checkpoint(val_loss, model)
-        elif score < self.best_score + self.delta and epoch > 30:
+        elif score < self.best_score + self.delta:
             self.counter += 1
             self.trace_func(f'EarlyStopping counter: {self.counter} out of {self.patience}')
             if self.counter >= self.patience:
                 self.early_stop = True
                 torch.save(self.best_model, self.path)
         else:
-            if score < self.best_score + self.delta:
-                self.best_score = score
-                self.save_checkpoint(val_loss, model)
+            self.best_score = score
+            self.save_checkpoint(val_loss, model)
             self.counter = 0
 
     def save_checkpoint(self, val_loss, model):
@@ -106,9 +133,7 @@ class EarlyStopping:
         if self.verbose:
             self.trace_func(
                 f'Validation loss decreased ({self.val_loss_min:.6f} --> {val_loss:.6f}).  Saving model ...')
-        print("begin")
         self.best_model = model.state_dict()
-        print("end")
         self.val_loss_min = val_loss
 
 
