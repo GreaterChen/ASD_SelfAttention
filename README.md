@@ -2,6 +2,7 @@
 Judge ASD by self-attention
 
 2022/12/29说明：
+
     1.早停机制，当损失连续7轮高于最低损失时停止当前折训练
     
     2.改进网络层，取消了self-attention层间的线形层，现在降维由V矩阵实现
@@ -9,6 +10,7 @@ Judge ASD by self-attention
     3.改进结果输出，现在每一折都会输出csv文件以及三个图片：一个acc图象和两个loss图象，训练完成后会输出5折的平均图象
     
 ToDoList:
+
     1.新增多个模型评价指标
     
     2.在训练前进行PCA降维
