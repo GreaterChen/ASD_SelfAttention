@@ -1,6 +1,19 @@
 # ASD_SelfAttention
 Judge ASD by self-attention
 
+2022/12/30说明：
+
+    1.连到服务器跑的时候可能会报错说不能在cuda上跑，因此需要改源文件配置：
+    
+        在**服务器**中： vim /root/miniconda3/lib/python3.8/site-packages/torch/_tensor.py
+        
+        然后在vim中的命令行模式进行查找： /self.numpy()
+        
+        然后进入编辑模式改为： self.cpu().numpy()
+        
+        然后:wq退出即可
+    
+
 2022/12/29说明：
 
     1.新增早停机制，当损失连续10轮高于最低损失时停止当前折训练
