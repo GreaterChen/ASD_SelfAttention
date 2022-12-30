@@ -1,7 +1,3 @@
-import os
-
-import pandas as pd
-import torch
 
 from requirements import *
 from args import *
@@ -138,7 +134,6 @@ def Train():
                     epoch_test_loss += loss
                     test_acc = 0
                     for i, res in enumerate(output):
-                        pred_label = 1 if res[0] > res[1] else 0
                         Y_pred.append(res[0])
                         Y_train.append(y[i][0])
                         if res[0] > res[1]:

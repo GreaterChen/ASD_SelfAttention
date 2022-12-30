@@ -6,6 +6,7 @@ epoch = 200  # 最多训练轮次，极大概率会早停，这个设大点也ok
 learn_rate = 0.001  # 学习率
 
 # 其他设置
+# root_path = "../raw_data/rois_aal_pkl_pearson"
 root_path = "/root/autodl-tmp/rois_aal_pkl_pearson"
 label_path = "label_674.csv"
 
@@ -20,7 +21,7 @@ Flood = False    # 是否采用Flood(理解原理后再尝试使用)
 flood_value = 140   # Flood中的超参数
 
 # 常量
-Windows_num = 115  # 时间窗的个数
+Windows_num = 116  # 时间窗的个数
 Vector_len = int(116 * 115 / 2)  # 上三角展开后的长度
 data_num = -1  # 数据集个数(自动获取)
 

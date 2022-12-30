@@ -62,11 +62,11 @@ def data_static(file_path):
 
 
 if __name__ == '__main__':
-    root_path = 'raw_data/rois_aal_csv'
+    root_path = '../../rois_aal_csv'
     files = os.listdir(root_path)
-    os.mkdir('../raw_data/rois_aal_csv_pearson')
     root_save_path = '../raw_data/rois_aal_csv_pearson'
-    for file in tqdm(files, desc='Datasets', file=sys.stdout):
+    for file in tqdm(files[:1], desc='Datasets', file=sys.stdout):
+        print(file)
         file_path = root_path + '/' + file
         save_path = root_save_path + '/' + file
         pd.DataFrame(data_dynamic(root_path + '/' + file, 30, 1)).to_csv(save_path, index=False, header=False)
