@@ -28,6 +28,6 @@ class Module(nn.Module):
 
     def forward(self, x):
         x = self.Attention(x)
-        x = x.view(x.shape[0], -1)  # 对每个样本展开成向量，7250和注意力模块最后的维度有关系，后续可能需要改一下让他自适应，暂时需要手改
+        x = x.view(x.shape[0], -1)
         output = self.GetRes(x)
         return output

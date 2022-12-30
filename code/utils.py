@@ -27,10 +27,7 @@ class GetData(Dataset):
             if 'csv' in root_path:
                 self.data.append(torch.tensor(pd.read_csv(file_path).values))  # 转化为tensor类型
             elif 'pkl' in root_path:
-                item = pd.read_pickle(file_path)
-                item = item.T.reset_index().rename(columns={'index': '-1'}).T
-                item = pd.DataFrame(item, dtype="float64")
-                self.data.append(torch.tensor(item.values))
+                self.data.append(torch.tensor(pd.read_pickle(file_path).values))
 
         label = list(zip(self.label_info.group_1.values, self.label_info.group_2.values))
 
