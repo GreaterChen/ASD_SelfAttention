@@ -17,9 +17,6 @@ EarlyStop = True    # 是否采用早停策略
 EarlyStop_patience = 10  # 能容忍多少次测试集损失值无下降
 EarlyStop_epoch = 50    # 从多少轮开始启用早停策略（若刚开始就使用可能会导致过早的训练停止）
 
-Flood = False    # 是否采用Flood(理解原理后再尝试使用)
-flood_value = 140   # Flood中的超参数
-
 # 常量
 Windows_num = 116  # 时间窗的个数
 Vector_len = int(116 * 115 / 2)  # 上三角展开后的长度

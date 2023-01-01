@@ -1,8 +1,11 @@
+import torch.optim.lr_scheduler
 
 from requirements import *
 from args import *
 from utils import draw_result_pic, EarlyStopping, GetAvg, GetData, Draw_ROC
 from Module import Module
+
+from torch.cuda.amp import autocast, GradScaler
 
 
 def Train():
@@ -39,9 +42,13 @@ def Train():
         # 优化器：SGD
         optimizer = torch.optim.SGD(module.parameters(), lr=learn_rate)
 
+        # scheduler = torch.optim.lr_scheduler.OneCycleLR(optimizer, max_lr=0.5, total_steps=100)
+
+        scaler = GradScaler()
+
         early_stop = EarlyStopping(patience=EarlyStop_patience)
 
-        p_table = PrettyTable(["epoch", "train_loss", "train_acc", "test_loss", "test_acc", "SEN", "SPE", "time(s)"])
+        p_table = PrettyTable(["epoch", "train_loss", "train_acc", "test_loss", "test_acc", "SEN", "SPE", "lr","time(s)"])
 
         # 此处获取真正的该折数据
         train_fold = Subset(all_data, train_index)
@@ -95,19 +102,17 @@ def Train():
                 x = x.cuda()
                 y = y.cuda()
                 y = y.to(torch.float32)  # 这一步似乎很费时间
-
-                output = module(x)
-
-                loss = loss_fn(output, y)
-                if Flood:
-                    flood = abs((loss - flood_value)) + flood_value
-                else:
-                    flood = loss
+                with autocast():
+                    output = module(x)
+                    loss = loss_fn(output, y)
                 epoch_train_loss += loss
 
                 optimizer.zero_grad()
-                flood.backward()
-                optimizer.step()
+                scaler.scale(loss).backward()
+                # scaler.step(scheduler)
+                scaler.step(optimizer)
+                # optimizer.step()
+                scaler.update()
                 train_acc = 0
                 for i, res in enumerate(output):
                     if res[0] > res[1]:
@@ -172,6 +177,7 @@ def Train():
                  format(float(test_acc_list[-1]), '.3f'),
                  format(float(SEN), '.3f'),
                  format(float(SPE), '.3f'),
+                 format(float(scheduler.get_lr()[0]),'.3f'),
                  format(float(time.time() - last_time), '2f')])
 
             last_time = time.time()
