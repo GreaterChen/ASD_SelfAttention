@@ -10,6 +10,9 @@ from torch.cuda.amp import autocast, GradScaler
 
 def Train():
     global Y_train, Y_pred, epoch_i, auc_list
+
+    # torch.backends.cudnn.benchmark = True
+
     all_data = GetData(root_path, label_path, dataset_size)  # 一次性读取所有数据
 
     kf = KFold(n_splits=5, shuffle=True, random_state=0)  # 初始化5折交叉验证的工具
@@ -48,7 +51,7 @@ def Train():
 
         early_stop = EarlyStopping(patience=EarlyStop_patience)
 
-        p_table = PrettyTable(["epoch", "train_loss", "train_acc", "test_loss", "test_acc", "SEN", "SPE", "lr","time(s)"])
+        p_table = PrettyTable(["epoch", "train_loss", "train_acc", "test_loss", "test_acc", "SEN", "SPE", "time(s)"])
 
         # 此处获取真正的该折数据
         train_fold = Subset(all_data, train_index)
@@ -177,13 +180,12 @@ def Train():
                  format(float(test_acc_list[-1]), '.3f'),
                  format(float(SEN), '.3f'),
                  format(float(SPE), '.3f'),
-                 format(float(scheduler.get_lr()[0]),'.3f'),
                  format(float(time.time() - last_time), '2f')])
 
             last_time = time.time()
             print(p_table)
             if EarlyStop:
-                if epoch_i >= 50:
+                if epoch_i >= EarlyStop_epoch:
                     early_stop(epoch_test_loss, module)
 
         auc = Draw_ROC(Y_train, Y_pred, epoch_i + 1, k + 1)

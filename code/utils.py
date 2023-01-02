@@ -1,4 +1,3 @@
-import pandas as pd
 
 from requirements import *
 
@@ -25,9 +24,9 @@ class GetData(Dataset):
         for file in tqdm(self.files, desc='Datasets', file=sys.stdout):
             file_path = root_path + "/" + file
             if 'csv' in root_path:
-                self.data.append(torch.tensor(pd.read_csv(file_path).values))  # 转化为tensor类型
+                self.data.append(torch.as_tensor(pd.read_csv(file_path).values))  # 转化为tensor类型
             elif 'pkl' in root_path:
-                self.data.append(torch.tensor(pd.read_pickle(file_path).values))
+                self.data.append(torch.as_tensor(pd.read_pickle(file_path).values))
 
         label = list(zip(self.label_info.group_1.values, self.label_info.group_2.values))
 
