@@ -1,14 +1,10 @@
-from math import sqrt
-
-import torch
-
 from requirements import *
 
 
 class SelfAttention(nn.Module):
     def __init__(self, num_attention_heads, input_size, dim_qk, dim_v):
         """
-        Self-Attention模块，代码参考Zotero上CSDN的代码
+        Self-Attention模块
         :param num_attention_heads: 多头注意力中的头数，以老师的意思不建议多头，因为参数过多模型欠拟合
         :param input_size: Self-Attention输入层的尺寸
         :param dim_qk: QK矩阵的维度,不考虑多头
@@ -27,10 +23,6 @@ class SelfAttention(nn.Module):
         self.query_layer = nn.Linear(self.signle_head_size, self.dim_qk * self.num_attention_heads, bias=False)
         self.key_layer = nn.Linear(self.signle_head_size, self.dim_qk * self.num_attention_heads, bias=False)
         self.value_layer = nn.Linear(self.signle_head_size, self.dim_v * self.num_attention_heads, bias=False)
-
-        # self.dense = nn.Linear(self.attention_head_size, self.attention_head_size)
-        # self.LayerNorm = LayerNorm(hidden_size, eps=1e-12)
-        # self.fusion = nn.Linear(num_attention_heads, 1)
 
     def trans_to_multiple_head(self, x, sign):
         if sign == 'q' or sign == 'k':
@@ -57,12 +49,6 @@ class SelfAttention(nn.Module):
 
         context = torch.matmul(attention_probs, value_heads)
         context = context.permute(0, 2, 1, 3).contiguous()
-        # context = context.permute(0, 1, 3, 2)
-        # context = self.fusion(context)
-        # context = context.permute(0, 1, 3, 2)
-        # context = context.view((1, context.size()[1], 7875))
-        new_size = context.size()[:-2] + (self.dim_v*self.num_attention_heads,)
+        new_size = context.size()[:-2] + (self.dim_v * self.num_attention_heads,)
         context = context.view(*new_size)
-        # hidden_states = self.dense(context)
-        # hidden_states = self.LayerNorm(hidden_states + x)
         return context

@@ -1,6 +1,6 @@
 # 超参数
 dataset_size = -1  # 训练的样本总数,-1代表全部训练,调试的时候可以改小点
-batch_size = 2  # 每次训练样本数
+batch_size = 2  # batch_size
 Head_num = 1  # self-attention的头数
 epoch = 200  # 最多训练轮次，极大概率会早停，这个设大点也ok
 learn_rate = 0.001  # 学习率
@@ -10,7 +10,7 @@ learn_rate = 0.001  # 学习率
 root_path = "/root/autodl-tmp/rois_aal_pkl_pearson"
 label_path = "label_674.csv"
 
-num_workers = 15    # datalodaer的线程数
+num_workers = 4    # dataloader的线程数
 pre_train = False    # 是否采用预训练模型
 
 EarlyStop = True    # 是否采用早停策略

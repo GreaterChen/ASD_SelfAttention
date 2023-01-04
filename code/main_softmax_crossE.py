@@ -11,8 +11,6 @@ from torch.cuda.amp import autocast, GradScaler
 def Train():
     global Y_train, Y_pred, epoch_i, auc_list
 
-    # torch.backends.cudnn.benchmark = True
-
     all_data = GetData(root_path, label_path, dataset_size)  # 一次性读取所有数据
 
     kf = KFold(n_splits=5, shuffle=True, random_state=0)  # 初始化5折交叉验证的工具
@@ -108,7 +106,7 @@ def Train():
                 with autocast():
                     output = module(x)
                     loss = loss_fn(output, y)
-                epoch_train_loss += loss
+                    epoch_train_loss += loss.item() * batch_size
 
                 optimizer.zero_grad()
                 scaler.scale(loss).backward()
@@ -139,7 +137,7 @@ def Train():
                     output = module(x)
 
                     loss = loss_fn(output, y)
-                    epoch_test_loss += loss
+                    epoch_test_loss += loss.item() * batch_size
                     test_acc = 0
                     for i, res in enumerate(output):
                         Y_pred.append(res[0])
