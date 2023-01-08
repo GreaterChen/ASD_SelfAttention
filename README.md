@@ -13,7 +13,10 @@ Judge ASD by self-attention
 
         然后:wq退出即可
 
-    2.由于之前忽略了read_csv()会把第一行数据默认当作标签,导致时间窗少了一个，请在服务器中运行且仅运行一遍code/fix_pkl.py 
+    2.由于之前忽略了read_csv()会把第一行数据默认当作标签,导致时间窗少了一个，请在服务器中运行且仅运行一遍code/fix_pkl.py
+        -> 注意文件中的root_path变量指示的位置是否正确
+
+    3. 运行前注意修改args.py中的root_path,learning_rate等参数
 
 ### 项目说明
 
@@ -28,6 +31,14 @@ Judge ASD by self-attention
     5.description/label.csv中的reason： 0代表正常，1代表时间点过少舍去，2代表有缺失值舍去
 
 ### 更新说明
+#### 2023/1/8:
+    1.SelfAttention.py下新增三个类，详细说明见代码注释
+        -> FFN  
+        -> AddNorm
+        -> AttentionWithFFNAndLn    连接FFN和AddNorm，组合成一个模块，供调用
+    2.Structure.py下新增
+        -> 带有AttentionWithFFNAndLn模块的self.AttentionFFNLn网络
+        -> forward函数 def attention_with_ffn_and_ln(self, x)
 #### 2023/1/3：
 
     1.尝试不展平使用二维卷积和一维卷积，loss下降一点后就不变了（梯度消失？）
