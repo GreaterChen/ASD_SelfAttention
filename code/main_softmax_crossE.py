@@ -245,6 +245,8 @@ if __name__ == '__main__':
         os.makedirs("../result")
     if not os.path.exists("../pretrain_module"):
         os.makedirs("../pretrain_module")
+    if not os.path.exists("../res"):
+        os.makedirs("../res")
 
     start_time = time.time()
     Train()
