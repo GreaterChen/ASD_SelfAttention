@@ -74,12 +74,12 @@ class Structure(nn.Module):
         )
 
         self.AttentionFFNLn = nn.Sequential(
-            SelfAttention(Head_num, Vector_len, Vector_len, 4000),  # self-attention的输入输出shape一样
-            AttentionWithFFNAndLn(4000, 4000*2, 4000, 4000, 0.9),
+            SelfAttention(Head_num, Vector_len, Vector_len, 4000),
+            AttentionWithFFNAndLn(4000 * Head_num, 4000 * Head_num * ffn_hidden_mult, 4000 * Head_num, 4000 * Head_num, dropout),
             SelfAttention(Head_num, 4000 * Head_num, 4000, 500),
-            AttentionWithFFNAndLn(500, 500 * 2, 500, 500, 0.9),
+            AttentionWithFFNAndLn(500 * Head_num, 500 * Head_num * ffn_hidden_mult, 500 * Head_num, 500 * Head_num, dropout),
             SelfAttention(Head_num, 500 * Head_num, 500, self.middle_size),
-            AttentionWithFFNAndLn(self.middle_size, self.middle_size * 2, self.middle_size, self.middle_size, 0.9),
+            AttentionWithFFNAndLn(self.middle_size * Head_num, self.middle_size * Head_num * ffn_hidden_mult, self.middle_size * Head_num, self.middle_size * Head_num, dropout),
         )
 
     # 二维卷积降维
@@ -107,6 +107,7 @@ class Structure(nn.Module):
         output = self.desc_conv1(x)
         return output
 
+    # ffn & layernorm with self-attention
     def attention_with_ffn_and_ln(self, x):
         x = self.AttentionFFNLn(x)
         x = x.view(x.shape[0], -1)
