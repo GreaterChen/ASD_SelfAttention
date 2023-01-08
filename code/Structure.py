@@ -17,7 +17,7 @@ class Structure(nn.Module):
         )
 
         # 展开、降维、softmax模块
-        self.FC = nn.Sequential(
+        self.FC0 = nn.Sequential(
             nn.Linear(Windows_num * self.middle_size * Head_num, 1000),
             nn.ReLU(),
             nn.Linear(1000, 500),
@@ -73,6 +73,15 @@ class Structure(nn.Module):
 
         )
 
+        self.AttentionFFNLn = nn.Sequential(
+            SelfAttention(Head_num, Vector_len, Vector_len, 4000),  # self-attention的输入输出shape一样
+            AttentionWithFFNAndLn(4000, 4000*2, 4000, 4000, 0.9),
+            SelfAttention(Head_num, 4000 * Head_num, 4000, 500),
+            AttentionWithFFNAndLn(500, 500 * 2, 500, 500, 0.9),
+            SelfAttention(Head_num, 500 * Head_num, 500, self.middle_size),
+            AttentionWithFFNAndLn(self.middle_size, self.middle_size * 2, self.middle_size, self.middle_size, 0.9),
+        )
+
     # 二维卷积降维
     def Conv2(self, x):
         x = self.Attention(x)
@@ -87,7 +96,7 @@ class Structure(nn.Module):
     def FC(self, x):
         x = self.Attention(x)
         x = x.view(x.shape[0], -1)
-        output = self.FC(x)
+        output = self.FC0(x)
         return output
 
     # 一维卷积降维
@@ -96,4 +105,10 @@ class Structure(nn.Module):
         x = self.conv1(x)  # (2,8,34)
         x = x.view(x.shape[0], -1)
         output = self.desc_conv1(x)
+        return output
+
+    def attention_with_ffn_and_ln(self, x):
+        x = self.AttentionFFNLn(x)
+        x = x.view(x.shape[0], -1)
+        output = self.FC0(x)
         return output

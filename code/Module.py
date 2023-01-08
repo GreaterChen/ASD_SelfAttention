@@ -6,4 +6,4 @@ class Module(Structure):
         super(Module, self).__init__()
 
     def forward(self, x):
-        return self.FC(x)
+        return self.attention_with_ffn_and_ln(x)

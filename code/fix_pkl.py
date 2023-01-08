@@ -4,7 +4,8 @@ import sys
 import pandas as pd
 from tqdm import tqdm
 
-root_path = "../raw_data/rois_aal_pkl_pearson/"
+# root_path = "../raw_data/rois_aal_pkl_pearson/"
+root_path = "/root/autodl-tmp/rois_aal_pkl_pearson/"
 files = os.listdir(root_path)
 
 for file in tqdm(files, desc="修复进度", file=sys.stdout):

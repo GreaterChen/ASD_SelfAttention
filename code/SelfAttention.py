@@ -52,3 +52,58 @@ class SelfAttention(nn.Module):
         new_size = context.size()[:-2] + (self.dim_v * self.num_attention_heads,)
         context = context.view(*new_size)
         return context
+
+class FFN(nn.Module):
+    '''
+    将输入的最后一个维度--映射到--隐藏层维度（一般为4倍高维），然后再映射到--输出层维度（一般为输入维度）。
+    input_size: 输入维度
+    hidden_size: 隐藏层维度 (default: input_size * 4)
+    output_size: 输出维度 (default: =input_size)
+    '''
+    def __init__(self, input_size, hidden_size, output_size):
+        super(FFN, self).__init__()
+        self.l1 = nn.Linear(in_features=input_size, out_features=hidden_size)
+        self.relu = nn.ReLU()
+        self.l2 = nn.Linear(in_features=hidden_size, out_features=output_size)
+
+    def forward(self, X):
+        return self.l2(self.relu(self.l1(X)))
+
+class AddNorm(nn.Module):
+    '''
+    残差连接 & 层归一化
+    normalized_size: 层归一化维度
+    dropout_rate: 随机丢弃概率
+    '''
+    def __init__(self, normalized_size, dropout_rate):
+        super(AddNorm, self).__init__()
+        self.dropout = nn.Dropout(dropout_rate)
+        self.layernorm = nn.LayerNorm(normalized_shape=normalized_size)
+
+    def forward(self, X, Y):
+        '''
+        X: 原始X
+        Y: X变换后的Y
+        return: 残差连接&层归一化结果
+        '''
+        return self.layernorm(self.dropout(Y) + X)
+
+class AttentionWithFFNAndLn(nn.Module):
+    '''
+    输入输出的X维度不变
+    组合了FFN和LayerNorm
+    '''
+    def __init__(self, input_size, hidden_size, output_size, ln_size, droprate):
+        super(AttentionWithFFNAndLn, self).__init__()
+        self.ffn = FFN(
+            input_size=input_size,
+            hidden_size=hidden_size,
+            output_size=output_size
+        )
+        self.an = AddNorm(
+            normalized_size=ln_size,
+            dropout_rate=droprate
+        )
+
+    def forward(self, X):
+        return self.an(X, self.ffn(X))
