@@ -20,10 +20,8 @@ Judge ASD by self-attention
 
 ### 项目说明
 
-    1.代码文件在code，注意改一下主函数code/args.py里面的数据路径和标签路径
-    
-    2.所有调整的参数都在code/args.py中
-    
+    1.代码文件在src，所有调整的参数都在src/args.py中
+
     3.autodl有专门存数据的地方/root/autodl-tmp/，官方说放在这会更快，同时也方便迁移到别的机器上（确实方便）
     
     4.标签在description/label_674.csv
@@ -31,6 +29,12 @@ Judge ASD by self-attention
     5.description/label.csv中的reason： 0代表正常，1代表时间点过少舍去，2代表有缺失值舍去
 
 ### 更新说明
+#### 2023/1/11:
+    1.新加两个文件完成了Kendall秩相关系数，未参与模型训练，后续移除
+        -> Kendall_prepare.py 准备pearson文件
+        -> Kendall.py   进行运算
+    暂时使用全部的时间序列（不考虑时间窗）进行特征提取，后续打算对每个时间窗都进行计算，取综合最优特征
+    2.移除了Structure.py中无用模块，新增AttentionFFNLn_Kandell模块
 #### 2023/1/8:
     1.SelfAttention.py下新增三个类，详细说明见代码注释
         -> FFN  
@@ -42,6 +46,8 @@ Judge ASD by self-attention
 #### 2023/1/3：
 
     1.尝试不展平使用二维卷积和一维卷积，loss下降一点后就不变了（梯度消失？）
+
+    2.解决了不同batch_size下loss不一致的问题：交叉熵计算出的loss是平均值，因此需要乘上batch_size才是实际损失
 #### 2023/1/2：
 
     1.在数据读取中将torch.Tensor()改为torch.to_tensor(),读取速度有明显提升，现在5秒就能读取完全部数据
