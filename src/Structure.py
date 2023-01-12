@@ -40,7 +40,7 @@ class Structure(nn.Module):
                                   self.middle_size * Head_num, self.middle_size * Head_num, dropout),
         )
 
-        self.AttentionFFNLn_Kandell = nn.Sequential(
+        self.AttentionFFNLn_Kandell_56 = nn.Sequential(
             SelfAttention(Head_num, Vector_len, Vector_len, 1500),
             AttentionWithFFNAndLn(1500 * Head_num, 1500 * Head_num * ffn_hidden_mult, 1500 * Head_num, 1500 * Head_num,
                                   dropout),
@@ -48,6 +48,18 @@ class Structure(nn.Module):
             AttentionWithFFNAndLn(500 * Head_num, 500 * Head_num * ffn_hidden_mult, 500 * Head_num, 500 * Head_num,
                                   dropout),
             SelfAttention(Head_num, 500 * Head_num, 500, self.middle_size),
+            AttentionWithFFNAndLn(self.middle_size * Head_num, self.middle_size * Head_num * ffn_hidden_mult,
+                                  self.middle_size * Head_num, self.middle_size * Head_num, dropout),
+        )
+
+        self.AttentionFFNLn_Kandell_32 = nn.Sequential(
+            SelfAttention(Head_num, Vector_len, Vector_len, 500),
+            AttentionWithFFNAndLn(500 * Head_num, 500 * Head_num * ffn_hidden_mult, 500 * Head_num, 500 * Head_num,
+                                  dropout),
+            SelfAttention(Head_num, 500 * Head_num, 500, 200),
+            AttentionWithFFNAndLn(200 * Head_num, 200 * Head_num * ffn_hidden_mult, 200 * Head_num, 200 * Head_num,
+                                  dropout),
+            SelfAttention(Head_num, 200 * Head_num, 200, self.middle_size),
             AttentionWithFFNAndLn(self.middle_size * Head_num, self.middle_size * Head_num * ffn_hidden_mult,
                                   self.middle_size * Head_num, self.middle_size * Head_num, dropout),
         )
@@ -61,7 +73,10 @@ class Structure(nn.Module):
 
     # ffn & layernorm with self-attention
     def attention_with_ffn_and_ln(self, x):
-        x = self.AttentionFFNLn_Kandell(x)
+        if kendall_nums == 32*32:
+            x = self.AttentionFFNLn_Kandell_32(x)
+        elif kendall == 56*56:
+            x = self.AttentionFFNLn_Kandell_56(x)
         x = x.view(x.shape[0], -1)
         output = self.desc_fc(x)
         return output

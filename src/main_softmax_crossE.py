@@ -13,7 +13,10 @@ def Train():
 
     all_data = GetData(root_path, label_path, dataset_size)  # 一次性读取所有数据
 
-    kf = KFold(n_splits=5, shuffle=True, random_state=0)  # 初始化5折交叉验证的工具
+    kf = KFold(n_splits=5, shuffle=True, random_state=318)  # 初始化5折交叉验证的工具
+
+    seed = 318
+    torch.manual_seed(seed)
 
     # 对每一折进行记录
     train_acc_list_kf = []
@@ -59,9 +62,9 @@ def Train():
         test_size = len(test_index)
 
         train_dataloader = DataLoader(train_fold, batch_size=batch_size, shuffle=True, num_workers=num_workers,
-                                      pin_memory=pin_memory)
+                                      pin_memory=pin_memory, drop_last=True)
         test_dataloader = DataLoader(test_fold, batch_size=batch_size, shuffle=True, num_workers=num_workers,
-                                     pin_memory=pin_memory)
+                                     pin_memory=pin_memory, drop_last=True)
 
         split_range += 1
 
@@ -163,12 +166,12 @@ def Train():
             test_acc_list.append(ACC)
             test_loss_list.append(float(epoch_test_loss))
 
-            if (epoch_i + 1) % 10 == 0:
+            if (epoch_i + 1) % 20 == 0:
                 auc = Draw_ROC(Y_train, Y_pred, epoch_i + 1, k + 1)
                 auc_list.append(auc)
 
-            if epoch_i + 1 == 50:
-                torch.save(module.state_dict(), f"../pretrain_module/pretrain_{k + 1}.pt")
+            # if epoch_i + 1 == 50:
+            #     torch.save(module.state_dict(), f"../pretrain_module/pretrain_{k + 1}.pt")
 
             p_table.add_row(
                 [epoch_i + 1,

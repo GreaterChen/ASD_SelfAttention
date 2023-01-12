@@ -1,5 +1,5 @@
 from requirements import *
-
+from args import *
 
 class GetData(Dataset):
     def __init__(self, root_path, label_path, dataset_size):
@@ -20,9 +20,8 @@ class GetData(Dataset):
 
         CheckOrder(self.files, self.label_info)
 
-        data = pd.read_csv("sort.csv")
-        index = np.array(data.iloc[:56 * 56, 0])
-
+        data = pd.read_csv("../description/kendall_sort.csv")
+        index = np.array(data.iloc[:kendall_nums, 0])
         for file in tqdm(self.files, desc='Datasets', file=sys.stdout):
             file_path = root_path + "/" + file
             if 'csv' in root_path:

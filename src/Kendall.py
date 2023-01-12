@@ -1,11 +1,11 @@
 from requirements import *
 from utils import CheckOrder
 
-root_path = "../raw_data/rois_aal_pkl_pearson_static_expand/"
+root_path = "../../raw_data/rois_aal_pkl_pearson_static_expand/"
 files = os.listdir(root_path)
 files.sort()
 
-label_temp = pd.read_csv("label_674.csv")
+label_temp = pd.read_csv("../description/label_674.csv")
 
 if not CheckOrder(files, label_temp):
     print("error")
@@ -43,7 +43,6 @@ for i in tqdm(range(len(all_asd_data)),desc="running",file=sys.stdout):
     ref = list(all_asd_data.iloc[i, :])
     bool_res = all_hc_data - ref > 0
     total_true = np.array(np.sum(bool_res, axis=0))
-    pass
     nc += total_true
     nd += len(all_hc_data) - total_true
 
@@ -54,4 +53,4 @@ for i in range(6670):
 tau.columns = ['ROI', 'tau']
 tau = tau.sort_values(by='tau', ascending=False)
 tau = tau.reset_index(drop=True)
-tau.to_csv("sort.csv",index=False)
+tau.to_csv("kendall_sort.csv",index=False)
