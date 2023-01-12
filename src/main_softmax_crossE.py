@@ -11,7 +11,7 @@ from torch.cuda.amp import autocast, GradScaler
 def Train():
     global Y_train, Y_pred, epoch_i, auc_list
 
-    all_data = GetData(root_path, label_path, dataset_size)  # 一次性读取所有数据
+    all_data = GetData(root_path, label_path, dataset_size)
 
     kf = KFold(n_splits=5, shuffle=True, random_state=318)  # 初始化5折交叉验证的工具
 
@@ -44,11 +44,10 @@ def Train():
         loss_fn = nn.CrossEntropyLoss()
         loss_fn = loss_fn.cuda()
         # 优化器：SGD
-        optimizer = torch.optim.SGD(module.parameters(), lr=learn_rate)
+        lr = learn_rate
+        optimizer = torch.optim.SGD(module.parameters(), lr=lr)
 
         # scheduler = torch.optim.lr_scheduler.OneCycleLR(optimizer, max_lr=0.5, total_steps=100)
-
-        scaler = GradScaler()
 
         early_stop = EarlyStopping(patience=EarlyStop_patience)
 
@@ -112,11 +111,8 @@ def Train():
                     epoch_train_loss += loss.item() * batch_size
 
                 optimizer.zero_grad()
-                scaler.scale(loss).backward()
-                # scaler.step(scheduler)
-                scaler.step(optimizer)
-                # optimizer.step()
-                scaler.update()
+                loss.backward()
+                optimizer.step()
                 train_acc = 0
                 for i, res in enumerate(output):
                     if res[0] > res[1]:
@@ -187,7 +183,9 @@ def Train():
             print(p_table)
             if EarlyStop:
                 if epoch_i >= EarlyStop_epoch:
-                    early_stop(epoch_test_loss, module)
+                    lr = early_stop(epoch_test_loss, module, lr)
+                    for param_group in optimizer.param_groups:
+                        param_group["lr"] = lr
 
         auc = Draw_ROC(Y_train, Y_pred, epoch_i + 1, k + 1)
         auc_list.append(auc)

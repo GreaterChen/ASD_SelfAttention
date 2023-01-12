@@ -1,6 +1,7 @@
 from requirements import *
 from args import *
 
+
 class GetData(Dataset):
     def __init__(self, root_path, label_path, dataset_size):
         """
@@ -18,7 +19,8 @@ class GetData(Dataset):
         self.files = self.files[:dataset_size] if dataset_size != -1 else self.files
         self.label_info = self.label_info[:dataset_size] if dataset_size != -1 else self.label_info
 
-        CheckOrder(self.files, self.label_info)
+        if not CheckOrder(self.files, self.label_info):
+            exit()
 
         data = pd.read_csv("../description/kendall_sort.csv")
         index = np.array(data.iloc[:kendall_nums, 0])
@@ -112,9 +114,11 @@ class EarlyStopping:
         self.trace_func = trace_func
         self.best_model = None
 
-    def __call__(self, val_loss, model):
+    def __call__(self, val_loss, model, lr):
 
         score = -val_loss
+
+        lr_c = lr
 
         if self.best_score is None:
             self.best_score = score
@@ -122,6 +126,12 @@ class EarlyStopping:
         elif score < self.best_score + self.delta:
             self.counter += 1
             self.trace_func(f'EarlyStopping counter: {self.counter} out of {self.patience}')
+
+            if self.counter % 5 == 0:
+                if lr >= 1e-6:
+                    lr_c = lr * 0.8
+                    print("lr is changed from", lr, "to", lr_c)
+
             if self.counter >= self.patience:
                 self.early_stop = True
                 torch.save(self.best_model, self.path)
@@ -129,6 +139,7 @@ class EarlyStopping:
             self.best_score = score
             self.save_checkpoint(val_loss, model)
             self.counter = 0
+        return lr_c
 
     def save_checkpoint(self, val_loss, model):
         '''Saves model when validation loss decrease.'''
