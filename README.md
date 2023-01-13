@@ -29,15 +29,28 @@ Judge ASD by self-attention
     5.description/label.csv中的reason： 0代表正常，1代表时间点过少舍去，2代表有缺失值舍去
 
 ### 更新说明
+#### 2023/1/13
+    1.今天发现之前attention层后的降维直接从两万多降到了500，今天进行了优化，增大了参数量
+
+    2.模型默认包含LSTM结构，如果想删去，在Structure.py中attention_with_ffn_and_ln()中进行更改
+
+    3.在每一折开始时添加torch.cuda.empty_cache()，用于清空显存缓存，防止第二折爆显存
 #### 2023/1/12
-    1.args新增对kendall降维后特征数量的设置，目前只支持32*32和56*56，若想尝试其他数字可以在Structure中仿照32和56的结构更改
+    1.args新增对kendall降维后特征数量的设置，目前只支持32*32、56*56、667，若想尝试其他数字可以在Structure中仿照已有结构更改
+
     2.若损失值连续5轮不下降，学习率会乘上0.8，但保证学习率大于1e-6
+
     3.移除混合精度训练，由于模型训练速度已经很快了，混合精度并没有带来提升，为了防止隐藏的问题，故移除
+
+    4.在self_attention层前添加LSTM层，现有设置是Kendall从6670降到1024，LSTM从1024降到512，然后再接self_attention
+
+    5.尝试了使用LSTM接到self_attention层后面代替全连接，效果还可以但是损失波动非常大。
 #### 2023/1/11:
     1.新加两个文件完成了Kendall秩相关系数，未参与模型训练，后续移除
         -> Kendall_prepare.py 准备pearson文件
         -> Kendall.py   进行运算
     暂时使用全部的时间序列（不考虑时间窗）进行特征提取，后续打算对每个时间窗都进行计算，取综合最优特征
+
     2.移除了Structure.py中无用模块，新增AttentionFFNLn_Kandell模块
 #### 2023/1/8:
     1.SelfAttention.py下新增三个类，详细说明见代码注释

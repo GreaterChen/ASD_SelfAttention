@@ -129,7 +129,7 @@ class EarlyStopping:
 
             if self.counter % 5 == 0:
                 if lr >= 1e-6:
-                    lr_c = lr * 0.8
+                    lr_c = lr * 0.2
                     print("lr is changed from", lr, "to", lr_c)
 
             if self.counter >= self.patience:

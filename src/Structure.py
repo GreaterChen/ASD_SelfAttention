@@ -18,11 +18,13 @@ class Structure(nn.Module):
 
         # 展开、降维、softmax模块
         self.desc_fc = nn.Sequential(
-            nn.Linear(Windows_num * self.middle_size * Head_num, 1000),
+            nn.Linear(Windows_num * self.middle_size * Head_num, 5000),
             nn.ReLU(),
-            nn.Linear(1000, 500),
+            nn.Linear(5000, 1000),
             nn.ReLU(),
-            nn.Linear(500, 20),
+            nn.Linear(1000, 200),
+            nn.ReLU(),
+            nn.Linear(200, 20),
             nn.ReLU(),
             nn.Linear(20, 2),
             nn.Softmax(dim=1)
@@ -64,6 +66,34 @@ class Structure(nn.Module):
                                   self.middle_size * Head_num, self.middle_size * Head_num, dropout),
         )
 
+        self.AttentionFFNLn_Kandell_667 = nn.Sequential(
+            SelfAttention(Head_num, Vector_len, Vector_len, 300),
+            AttentionWithFFNAndLn(300 * Head_num, 300 * Head_num * ffn_hidden_mult, 300 * Head_num, 300 * Head_num,
+                                  dropout),
+            SelfAttention(Head_num, 300 * Head_num, 300, 100),
+            AttentionWithFFNAndLn(100 * Head_num, 100 * Head_num * ffn_hidden_mult, 100 * Head_num, 100 * Head_num,
+                                  dropout),
+            SelfAttention(Head_num, 100 * Head_num, 100, self.middle_size),
+            AttentionWithFFNAndLn(self.middle_size * Head_num, self.middle_size * Head_num * ffn_hidden_mult,
+                                  self.middle_size * Head_num, self.middle_size * Head_num, dropout),
+        )
+
+        self.AttentionFFNLn_Kandell_512 = nn.Sequential(
+            SelfAttention(Head_num, 512, 512, 256),
+            AttentionWithFFNAndLn(256 * Head_num, 256 * Head_num * ffn_hidden_mult, 256 * Head_num, 256 * Head_num,
+                                  dropout),
+            SelfAttention(Head_num, 256 * Head_num, 256, 100),
+            AttentionWithFFNAndLn(100 * Head_num, 100 * Head_num * ffn_hidden_mult, 100 * Head_num, 100 * Head_num,
+                                  dropout),
+            SelfAttention(Head_num, 100 * Head_num, 100, self.middle_size),
+            AttentionWithFFNAndLn(self.middle_size * Head_num, self.middle_size * Head_num * ffn_hidden_mult,
+                                  self.middle_size * Head_num, self.middle_size * Head_num, dropout),
+        )
+
+        self.lstm = nn.LSTM(32 * 32, 512, batch_first=True)
+        self.linear1 = nn.Linear(116 * 2, 2)
+        self.softmax = nn.Softmax(dim=1)
+
     # 全连接降维
     def FC(self, x):
         x = self.Attention(x)
@@ -73,10 +103,16 @@ class Structure(nn.Module):
 
     # ffn & layernorm with self-attention
     def attention_with_ffn_and_ln(self, x):
-        if kendall_nums == 32*32:
-            x = self.AttentionFFNLn_Kandell_32(x)
-        elif kendall == 56*56:
-            x = self.AttentionFFNLn_Kandell_56(x)
+        x = x.float()
+        x, (_, _) = self.lstm(x)
+        # if kendall_nums == 32 * 32:
+        #     x = self.AttentionFFNLn_Kandell_32(x)
+        # elif kendall_nums == 56 * 56:
+        #     x = self.AttentionFFNLn_Kandell_56(x)
+        # elif kendall_nums == 667:
+        #     x = self.AttentionFFNLn_Kandell_667(x)
+        x = self.AttentionFFNLn_Kandell_512(x)
         x = x.view(x.shape[0], -1)
         output = self.desc_fc(x)
         return output
+# /

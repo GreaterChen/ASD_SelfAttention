@@ -5,7 +5,7 @@ class SelfAttention(nn.Module):
     def __init__(self, num_attention_heads, input_size, dim_qk, dim_v):
         """
         Self-Attention模块
-        :param num_attention_heads: 多头注意力中的头数，以老师的意思不建议多头，因为参数过多模型欠拟合
+        :param num_attention_heads: 多头注意力中的头数
         :param input_size: Self-Attention输入层的尺寸
         :param dim_qk: QK矩阵的维度,不考虑多头
         :param dim_v: V矩阵的维度,不考虑多头(决定了降维的输出尺寸)

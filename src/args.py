@@ -1,9 +1,9 @@
 # 超参数
 dataset_size = -1  # 训练的样本总数,-1代表全部训练,调试的时候可以改小点
 batch_size = 2  # batch_size
-Head_num = 2  # self-attention的头数
-epoch = 200  # 最多训练轮次，如果开早停了这个设大点没有影响
-learn_rate = 0.0001  # 初始学习率
+Head_num = 4  # self-attention的头数
+epoch = 300  # 最多训练轮次，如果开早停了这个设大点没有影响
+learn_rate = 0.0005  # 初始学习率
 dropout = 0.9   # 每一个AttentionWithFFNAndLn模块的dropout比例
 ffn_hidden_mult = 2     # 隐藏层映射到高维的倍数  隐藏层大小 = 输入层大小 * ffn_hidden_mult
 
@@ -11,6 +11,8 @@ ffn_hidden_mult = 2     # 隐藏层映射到高维的倍数  隐藏层大小 = �
 # root_path = "../raw_data/rois_aal_pkl_pearson"
 root_path = "/root/autodl-tmp/rois_aal_pkl_pearson"
 label_path = "../description/label_674.csv"
+
+seed = 99335  # 随机数种子，请在良辰吉日先拜三拜后再更改
 
 kendall = True
 kendall_nums = 32*32

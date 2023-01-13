@@ -13,9 +13,8 @@ def Train():
 
     all_data = GetData(root_path, label_path, dataset_size)
 
-    kf = KFold(n_splits=5, shuffle=True, random_state=318)  # 初始化5折交叉验证的工具
+    kf = KFold(n_splits=5, shuffle=True, random_state=seed)  # 初始化5折交叉验证的工具
 
-    seed = 318
     torch.manual_seed(seed)
 
     # 对每一折进行记录
@@ -39,6 +38,7 @@ def Train():
         else:
             module = Module()
         module = module.cuda()
+        torch.cuda.empty_cache()    # 防止爆显存
 
         # 损失函数：交叉熵
         loss_fn = nn.CrossEntropyLoss()
@@ -221,7 +221,7 @@ def Train():
     avg_sen = GetAvg(SEN_list_kf)
     avg_spe = GetAvg(SPE_list_kf)
 
-    auc_pd.to_csv("../res/auc.scv")
+    auc_pd.to_csv("../result/auc.scv")
 
     res = pd.DataFrame()
     res['训练集准确率'] = avg_train_acc
