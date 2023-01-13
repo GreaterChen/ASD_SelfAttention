@@ -4,6 +4,8 @@ from requirements import *
 from args import *
 from utils import draw_result_pic, EarlyStopping, GetAvg, GetData, Draw_ROC
 from Module import Module
+from capsulelayers import *
+from capsulenet import *
 
 from torch.cuda.amp import autocast, GradScaler
 
@@ -105,10 +107,10 @@ def Train():
                 x = x.cuda()
                 y = y.cuda()
                 y = y.to(torch.float32)  # 这一步似乎很费时间
-                with autocast():
-                    output = module(x)
-                    loss = loss_fn(output, y)
-                    epoch_train_loss += loss.item() * batch_size
+                float_output, output = module(x)
+
+                loss = loss_fn(output,y)
+                epoch_train_loss += loss.item() * batch_size
 
                 optimizer.zero_grad()
                 loss.backward()
@@ -133,8 +135,8 @@ def Train():
                     y = y.cuda()
                     y = y.to(torch.float32)
 
-                    output = module(x)
-
+                    float_output,output = module(x)
+                    # loss = caps_loss(y, float_output) + loss_fn(output,y)
                     loss = loss_fn(output, y)
                     epoch_test_loss += loss.item() * batch_size
                     test_acc = 0
@@ -210,7 +212,7 @@ def Train():
         K_Fold_res['测试集准确率'] = test_acc_list_kf[k]
         K_Fold_res['灵敏度'] = SEN_list_kf[k]
         K_Fold_res['特异性'] = SPE_list_kf[k]
-        K_Fold_res.to_csv(f"../result/{k + 1}_Fold.csv",encoding='utf_8_sig')
+        K_Fold_res.to_csv(f"../result/{k + 1}_Fold.csv", encoding='utf_8_sig')
         k += 1
 
     avg_train_acc = GetAvg(train_acc_list_kf)
@@ -221,7 +223,7 @@ def Train():
     avg_sen = GetAvg(SEN_list_kf)
     avg_spe = GetAvg(SPE_list_kf)
 
-    auc_pd.to_csv("../result/auc.scv",encoding='utf_8_sig')
+    auc_pd.to_csv("../result/auc.scv", encoding='utf_8_sig')
 
     res = pd.DataFrame()
     res['训练集准确率'] = avg_train_acc
@@ -230,7 +232,7 @@ def Train():
     res['测试集损失值'] = avg_test_loss
     res['灵敏度'] = avg_sen
     res['特异性'] = avg_spe
-    res.to_csv("../result/result.csv",encoding='utf_8_sig')
+    res.to_csv("../result/result.csv", encoding='utf_8_sig')
 
     # 传结果list格式： [train(list), test(list)]
     draw_result_pic(res=[avg_train_acc, avg_test_acc],

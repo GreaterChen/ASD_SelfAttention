@@ -39,6 +39,9 @@ Judge ASD by self-attention
     4.args中增加Fisher's r-to-z transform，直观感受是较小的损失下降能带来较大的准确率上升，但是训到最后训练集都不下降了，上限略低
 
     5.对SGD新增动量，参数设置为0.9时收敛过快，在lr=1e-4时损失波动非常大，lr=1e-5时和不加区别不大
+
+    6.尝试CapsNet，玩不明白，效果很差
+
 #### 2023/1/12
     1.args新增对kendall降维后特征数量的设置，目前只支持32*32、56*56、667，若想尝试其他数字可以在Structure中仿照已有结构更改
 
@@ -49,6 +52,7 @@ Judge ASD by self-attention
     4.在self_attention层前添加LSTM层，现有设置是Kendall从6670降到1024，LSTM从1024降到512，然后再接self_attention
 
     5.尝试了使用LSTM接到self_attention层后面代替全连接，波动非常大。
+
 #### 2023/1/11:
     1.新加两个文件完成了Kendall秩相关系数，未参与模型训练，后续移除
         -> Kendall_prepare.py 准备pearson文件

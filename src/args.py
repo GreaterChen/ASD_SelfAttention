@@ -1,9 +1,9 @@
 # 超参数
 dataset_size = -1  # 训练的样本总数,-1代表全部训练,调试的时候可以改小点
 batch_size = 2  # batch_size
-Head_num = 4  # self-attention的头数
+Head_num = 1  # self-attention的头数
 epoch = 300  # 最多训练轮次，如果开早停了这个设大点没有影响
-learn_rate = 0.0001  # 初始学习率
+learn_rate = 0.001  # 初始学习率
 dropout = 0.5  # 每一个AttentionWithFFNAndLn模块的dropout比例
 ffn_hidden_mult = 2  # 隐藏层映射到高维的倍数  隐藏层大小 = 输入层大小 * ffn_hidden_mult
 

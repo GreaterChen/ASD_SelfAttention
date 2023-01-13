@@ -1,6 +1,7 @@
 from SelfAttention import *
 from requirements import *
 from args import *
+from capsulenet import *
 
 
 # 包含尝试过的架构：全连接降维、一维卷积降维、二维卷积降维
@@ -8,7 +9,7 @@ class Structure(nn.Module):
     def __init__(self):
         super(Structure, self).__init__()
 
-        self.middle_size = 50
+        self.middle_size = 10
         # 注意力模块
         self.Attention = nn.Sequential(
             SelfAttention(Head_num, Vector_len, Vector_len, 4000),  # self-attention的输入输出shape一样
@@ -90,7 +91,19 @@ class Structure(nn.Module):
                                   self.middle_size * Head_num, self.middle_size * Head_num, dropout),
         )
 
-        self.lstm = nn.LSTM(32 * 32, 512, batch_first=True)
+        self.AttentionFFNLn_Kandell_50 = nn.Sequential(
+            SelfAttention(Head_num, 50, 50, 50),
+            AttentionWithFFNAndLn(50 * Head_num, 50 * Head_num * ffn_hidden_mult, 50 * Head_num, 50 * Head_num,
+                                  dropout),
+            SelfAttention(Head_num, 50 * Head_num, 50, 50),
+            AttentionWithFFNAndLn(50 * Head_num, 50 * Head_num * ffn_hidden_mult, 50 * Head_num, 50 * Head_num,
+                                  dropout),
+            SelfAttention(Head_num, 50 * Head_num, 50, self.middle_size),
+            AttentionWithFFNAndLn(self.middle_size * Head_num, self.middle_size * Head_num * ffn_hidden_mult,
+                                  self.middle_size * Head_num, self.middle_size * Head_num, dropout),
+        )
+
+        self.lstm = nn.LSTM(32 * 32, 50, batch_first=True)
         self.linear1 = nn.Linear(116 * 2, 2)
         self.softmax = nn.Softmax(dim=1)
 
@@ -104,15 +117,18 @@ class Structure(nn.Module):
     # ffn & layernorm with self-attention
     def attention_with_ffn_and_ln(self, x):
         x = x.float()
-        x, (_, _) = self.lstm(x)
+        x, (_, _) = self.lstm(x)    # [batch_size, 116, 1024]->[batch_size,116,512]
         # if kendall_nums == 32 * 32:
         #     x = self.AttentionFFNLn_Kandell_32(x)
         # elif kendall_nums == 56 * 56:
         #     x = self.AttentionFFNLn_Kandell_56(x)
         # elif kendall_nums == 667:
         #     x = self.AttentionFFNLn_Kandell_667(x)
-        x = self.AttentionFFNLn_Kandell_512(x)
-        x = x.view(x.shape[0], -1)
-        output = self.desc_fc(x)
+        x = self.AttentionFFNLn_Kandell_50(x)      # [batch_size,116,512]->[batch_size,116,200]
+        capsnet = CapsuleNet([2, 116, self.middle_size * Head_num],3)
+        capsnet = capsnet.cuda()
+        output = capsnet(x)     # [batch_size, 116, 200]->[batch_size,2,2]
+        # x = x.view(x.shape[0], -1)
+        # output = self.desc_fc(x)
         return output
 # /
