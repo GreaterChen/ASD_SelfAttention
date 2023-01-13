@@ -33,12 +33,12 @@ def Train():
     for train_index, test_index in kf.split(all_data):  # 此处获取每一折的索引
         # 对于每一折来说，都要从0开始训练模型
         # 因为如果不同折训练同一个模型，会出现当前折的测试集曾被另一折当作训练集训练，导致准确率异常
+        torch.cuda.empty_cache()    # 防止爆显存
         if pre_train:
             module = torch.load(f"../pretrain_module/pretrain_{k}.pt")
         else:
             module = Module()
         module = module.cuda()
-        torch.cuda.empty_cache()    # 防止爆显存
 
         # 损失函数：交叉熵
         loss_fn = nn.CrossEntropyLoss()

@@ -27,9 +27,15 @@ class GetData(Dataset):
         for file in tqdm(self.files, desc='Datasets', file=sys.stdout):
             file_path = root_path + "/" + file
             if 'csv' in root_path:
-                self.data.append(torch.as_tensor(pd.read_csv(file_path).values))  # 转化为tensor类型
+                if fisher_r2z:
+                    self.data.append(torch.as_tensor(np.arctanh(pd.read_csv(file_path).iloc[:, index].values)))
+                else:
+                    self.data.append(torch.as_tensor(pd.read_csv(file_path).values))  # 转化为tensor类型
             elif 'pkl' in root_path:
-                self.data.append(torch.as_tensor(pd.read_pickle(file_path).iloc[:, index].values))
+                if fisher_r2z:
+                    self.data.append(torch.as_tensor(np.arctanh(pd.read_pickle(file_path).iloc[:, index].values)))
+                else:
+                    self.data.append(torch.as_tensor(pd.read_pickle(file_path).iloc[:, index].values))
 
         label = list(zip(self.label_info.group_1.values, self.label_info.group_2.values))
 
@@ -128,9 +134,8 @@ class EarlyStopping:
             self.trace_func(f'EarlyStopping counter: {self.counter} out of {self.patience}')
 
             if self.counter % 5 == 0:
-                if lr >= 1e-6:
-                    lr_c = lr * 0.2
-                    print("lr is changed from", lr, "to", lr_c)
+                lr_c = lr * 0.2
+                print("lr is changed from", lr, "to", lr_c)
 
             if self.counter >= self.patience:
                 self.early_stop = True
