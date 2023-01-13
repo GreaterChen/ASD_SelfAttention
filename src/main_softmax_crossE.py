@@ -33,7 +33,7 @@ def Train():
     for train_index, test_index in kf.split(all_data):  # 此处获取每一折的索引
         # 对于每一折来说，都要从0开始训练模型
         # 因为如果不同折训练同一个模型，会出现当前折的测试集曾被另一折当作训练集训练，导致准确率异常
-        torch.cuda.empty_cache()    # 防止爆显存
+        torch.cuda.empty_cache()  # 防止爆显存
         if pre_train:
             module = torch.load(f"../pretrain_module/pretrain_{k}.pt")
         else:
@@ -210,7 +210,7 @@ def Train():
         K_Fold_res['测试集准确率'] = test_acc_list_kf[k]
         K_Fold_res['灵敏度'] = SEN_list_kf[k]
         K_Fold_res['特异性'] = SPE_list_kf[k]
-        K_Fold_res.to_csv(f"../result/{k + 1}_Fold.csv")
+        K_Fold_res.to_csv(f"../result/{k + 1}_Fold.csv",encoding='utf_8_sig')
         k += 1
 
     avg_train_acc = GetAvg(train_acc_list_kf)
@@ -221,7 +221,7 @@ def Train():
     avg_sen = GetAvg(SEN_list_kf)
     avg_spe = GetAvg(SPE_list_kf)
 
-    auc_pd.to_csv("../result/auc.scv")
+    auc_pd.to_csv("../result/auc.scv",encoding='utf_8_sig')
 
     res = pd.DataFrame()
     res['训练集准确率'] = avg_train_acc
@@ -230,7 +230,7 @@ def Train():
     res['测试集损失值'] = avg_test_loss
     res['灵敏度'] = avg_sen
     res['特异性'] = avg_spe
-    res.to_csv("../result/result.csv")
+    res.to_csv("../result/result.csv",encoding='utf_8_sig')
 
     # 传结果list格式： [train(list), test(list)]
     draw_result_pic(res=[avg_train_acc, avg_test_acc],

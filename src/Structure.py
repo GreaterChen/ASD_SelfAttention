@@ -19,13 +19,13 @@ class Structure(nn.Module):
         # 展开、降维、softmax模块
         self.desc_fc = nn.Sequential(
             nn.Linear(Windows_num * self.middle_size * Head_num, 5000),
-            nn.ReLU(),
+            nn.ReLU(inplace=True),
             nn.Linear(5000, 1000),
-            nn.ReLU(),
+            nn.ReLU(inplace=True),
             nn.Linear(1000, 200),
-            nn.ReLU(),
+            nn.ReLU(inplace=True),
             nn.Linear(200, 20),
-            nn.ReLU(),
+            nn.ReLU(inplace=True),
             nn.Linear(20, 2),
             nn.Softmax(dim=1)
         )
