@@ -77,9 +77,6 @@ class Structure(nn.Module):
         )
 
         self.lstm = nn.LSTM(32 * 32, 512, batch_first=True)
-        self.linear1 = nn.Linear(116 * 2, 2)
-        self.softmax = nn.Softmax(dim=1)
-        self.c1 = nn.Conv2d(4, 1, (5, 5))
 
     # 全连接降维
     def FC(self, x):
@@ -92,14 +89,8 @@ class Structure(nn.Module):
     def attention_with_ffn_and_ln(self, x):
         x = x.float()
         x, (_, _) = self.lstm(x)
-        # if kendall_nums == 32 * 32:
-        #     x = self.AttentionFFNLn_Kandell_32(x)
-        # elif kendall_nums == 56 * 56:
-        #     x = self.AttentionFFNLn_Kandell_56(x)
         x = self.AttentionFFNLn_Kandell_512(x)
         x = x.reshape(x.shape[0], Head_num, x.shape[1], -1)
-        # x = self.c1(x)
         x = x.view(x.shape[0], -1)
         output = self.desc_fc(x)
         return output
-# /

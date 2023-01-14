@@ -1,17 +1,13 @@
-import torch.optim.lr_scheduler
-
 from requirements import *
 from args import *
 from utils import draw_result_pic, EarlyStopping, GetAvg, GetData, Draw_ROC
 from Module import Module
-from capsulelayers import *
-from capsulenet import *
-
-from torch.cuda.amp import autocast, GradScaler
+from Regularization import *
 
 
 def Train():
     global Y_train, Y_pred, epoch_i, auc_list
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     all_data = GetData(root_path, label_path, dataset_size)
 
@@ -35,19 +31,23 @@ def Train():
     for train_index, test_index in kf.split(all_data):  # 此处获取每一折的索引
         # 对于每一折来说，都要从0开始训练模型
         # 因为如果不同折训练同一个模型，会出现当前折的测试集曾被另一折当作训练集训练，导致准确率异常
-        torch.cuda.empty_cache()  # 防止爆显存
         if pre_train:
             module = torch.load(f"../pretrain_module/pretrain_{k}.pt")
         else:
             module = Module()
-        module = module.cuda()
+        module = module.to(device)
+
+        scaler = GradScaler()
 
         # 损失函数：交叉熵
-        loss_fn = nn.CrossEntropyLoss()
+        loss_fn = nn.CrossEntropyLoss().to(device)
         loss_fn = loss_fn.cuda()
         # 优化器：SGD
         lr = learn_rate
         optimizer = torch.optim.SGD(module.parameters(), lr=lr)
+
+        L1_reg_loss = Regularization(module, L1_weight_decay, p=1).to(device)
+        L2_reg_loss = Regularization(module, L2_weight_decay, p=2).to(device)
 
         # scheduler = torch.optim.lr_scheduler.OneCycleLR(optimizer, max_lr=0.5, total_steps=100)
 
@@ -107,14 +107,18 @@ def Train():
                 x = x.cuda()
                 y = y.cuda()
                 y = y.to(torch.float32)  # 这一步似乎很费时间
-                float_output, output = module(x)
+                optimizer.zero_grad()
+                with autocast():
+                    output = module(x)
+                    loss = loss_fn(output, y) + L1_reg_loss(module) + L2_reg_loss(module)
 
-                loss = loss_fn(output,y)
                 epoch_train_loss += loss.item() * batch_size
 
-                optimizer.zero_grad()
-                loss.backward()
-                optimizer.step()
+                scaler.scale(loss).backward()
+                scaler.step(optimizer)
+                scaler.update()
+                # loss.backward()
+                # optimizer.step()
                 train_acc = 0
                 for i, res in enumerate(output):
                     if res[0] > res[1]:
@@ -135,8 +139,7 @@ def Train():
                     y = y.cuda()
                     y = y.to(torch.float32)
 
-                    float_output,output = module(x)
-                    # loss = caps_loss(y, float_output) + loss_fn(output,y)
+                    output = module(x)
                     loss = loss_fn(output, y)
                     epoch_test_loss += loss.item() * batch_size
                     test_acc = 0
@@ -174,12 +177,12 @@ def Train():
             p_table.add_row(
                 [epoch_i + 1,
                  format(float(train_loss_list[-1]), '.3f'),
-                 format(float(train_acc_list[-1]), '.3f'),
+                 format(float(train_acc_list[-1]), '.4f'),
                  format(float(test_loss_list[-1]), '.3f'),
-                 format(float(test_acc_list[-1]), '.3f'),
+                 format(float(test_acc_list[-1]), '.4f'),
                  format(float(SEN), '.3f'),
                  format(float(SPE), '.3f'),
-                 format(float(time.time() - last_time), '2f')])
+                 format(float(time.time() - last_time), '.2f')])
 
             last_time = time.time()
             print(p_table)
