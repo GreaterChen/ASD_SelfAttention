@@ -5,8 +5,28 @@ from Module import Module
 from Regularization import *
 
 
+class AutoEncoder(nn.Module):
+    def __init__(self, input_dim, output_dim):
+        super(AutoEncoder, self).__init__()
+        self.input_dim = input_dim
+        self.output_dim = output_dim
+        self.encoder = nn.Sequential(
+            nn.Linear(input_dim, output_dim),
+            nn.ReLU()
+        )
+        self.decoder = nn.Sequential(
+            nn.Linear(output_dim, input_dim),
+            nn.Sigmoid()
+        )
+
+    def forward(self, x):
+        encoder_out = self.encoder(x)
+        decoder_out = self.decoder(encoder_out)
+        return encoder_out, decoder_out
+
+
 def Train():
-    global Y_train, Y_pred, epoch_i, auc_list
+    global Y_train, Y_pred, epoch_i, auc_list, best_acc, best_acc_list
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     all_data = GetData(root_path, label_path, dataset_size)
@@ -35,8 +55,8 @@ def Train():
             module = torch.load(f"../pretrain_module/pretrain_{k}.pt")
         else:
             module = Module()
-        module = module.to(device)
 
+        module = module.to(device)
         scaler = GradScaler()
 
         # 损失函数：交叉熵
@@ -53,7 +73,8 @@ def Train():
 
         early_stop = EarlyStopping(patience=EarlyStop_patience)
 
-        p_table = PrettyTable(["epoch", "train_loss", "train_acc", "test_loss", "test_acc", "SEN", "SPE", "time(s)"])
+        p_table = PrettyTable(
+            ["epoch", "train_loss", "train_acc", "test_loss", "test_acc", "best_acc", "SEN", "SPE", "time(s)"])
 
         # 此处获取真正的该折数据
         train_fold = Subset(all_data, train_index)
@@ -78,6 +99,8 @@ def Train():
         SEN_list = []
         SPE_list = []
         auc_list = []
+        best_acc_list = []
+        best_acc = 0
 
         # 下面开始当前折的训练
         for epoch_i in range(epoch):
@@ -96,6 +119,7 @@ def Train():
             TN = 0
             Y_pred = []
             Y_train = []
+
 
             module.train()
             # 下面开始当前折、当前轮的训练，即以batch_size的大小进行训练
@@ -166,6 +190,8 @@ def Train():
             SPE_list.append(SPE)
             test_acc_list.append(ACC)
             test_loss_list.append(float(epoch_test_loss))
+            if ACC > best_acc:
+                best_acc = ACC
 
             if (epoch_i + 1) % 20 == 0:
                 auc = Draw_ROC(Y_train, Y_pred, epoch_i + 1, k + 1)
@@ -180,6 +206,7 @@ def Train():
                  format(float(train_acc_list[-1]), '.4f'),
                  format(float(test_loss_list[-1]), '.3f'),
                  format(float(test_acc_list[-1]), '.4f'),
+                 format(float(best_acc), '.4f'),
                  format(float(SEN), '.3f'),
                  format(float(SPE), '.3f'),
                  format(float(time.time() - last_time), '.2f')])
@@ -192,9 +219,11 @@ def Train():
                     for param_group in optimizer.param_groups:
                         param_group["lr"] = lr
 
+        best_acc_list.append(best_acc)
         auc = Draw_ROC(Y_train, Y_pred, epoch_i + 1, k + 1)
         auc_list.append(auc)
         auc_pd = pd.concat([pd.DataFrame({f'第{k + 1}轮': auc_list}), auc_pd])
+        print("当前折最优准确率：", best_acc_list[-1])
 
         draw_result_pic([train_acc_list, test_acc_list], 0, f'{k + 1}Fold_acc')
         draw_result_pic([train_loss_list, test_loss_list], 0, f'{k + 1}Fold_loss')
@@ -217,7 +246,11 @@ def Train():
         K_Fold_res['特异性'] = SPE_list_kf[k]
         K_Fold_res.to_csv(f"../result/{k + 1}_Fold.csv", encoding='utf_8_sig')
         k += 1
+        del module
+        torch.cuda.empty_cache()
 
+    print("全局最优准确率：", max(best_acc_list))
+    print("全局平均最优准确率：", np.mean(best_acc_list))
     avg_train_acc = GetAvg(train_acc_list_kf)
     avg_train_loss = GetAvg(train_loss_list_kf)
     avg_test_acc = GetAvg(test_acc_list_kf)
@@ -226,7 +259,7 @@ def Train():
     avg_sen = GetAvg(SEN_list_kf)
     avg_spe = GetAvg(SPE_list_kf)
 
-    auc_pd.to_csv("../result/auc.scv", encoding='utf_8_sig')
+    auc_pd.to_csv("../result/auc.csv", encoding='utf_8_sig')
 
     res = pd.DataFrame()
     res['训练集准确率'] = avg_train_acc

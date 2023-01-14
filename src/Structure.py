@@ -30,11 +30,13 @@ class Structure(nn.Module):
         )
 
         self.desc_2 = nn.Sequential(
-            nn.Linear(5152, 1000),
+            nn.Linear(6960, 2000),
             nn.ReLU(inplace=True),
-            nn.Linear(1000, 200),
+            nn.Linear(2000, 500),
             nn.ReLU(inplace=True),
-            nn.Linear(200, 20),
+            nn.Linear(500, 100),
+            nn.ReLU(inplace=True),
+            nn.Linear(100, 20),
             nn.ReLU(inplace=True),
             nn.Linear(20, 2),
             nn.Softmax(dim=1)
@@ -76,7 +78,7 @@ class Structure(nn.Module):
                                   self.middle_size * Head_num, self.middle_size * Head_num, dropout),
         )
 
-        self.lstm = nn.LSTM(32 * 32, 512, batch_first=True)
+        self.lstm = nn.LSTM(300, 300, batch_first=True)
 
     # 全连接降维
     def FC(self, x):
@@ -88,9 +90,15 @@ class Structure(nn.Module):
     # ffn & layernorm with self-attention
     def attention_with_ffn_and_ln(self, x):
         x = x.float()
-        x, (_, _) = self.lstm(x)
-        x = self.AttentionFFNLn_Kandell_512(x)
-        x = x.reshape(x.shape[0], Head_num, x.shape[1], -1)
-        x = x.view(x.shape[0], -1)
+        # x, (_, _) = self.lstm(x)
+
+        # sae = torch.load("SAE.pth")
+        # sae.eval()
+        # sae.cuda()
+        # x = sae.encoder(x)
+        x = self.AttentionFFNLn_Kandell_32(x)
+        # x, (_, _) = self.lstm(x)
+        # x = x.view(x.shape[0], -1)
+        x = x.reshape(x.shape[0], -1)
         output = self.desc_fc(x)
         return output
