@@ -3,16 +3,16 @@ dataset_size = -1  # 训练的样本总数,-1代表全部训练,调试的时候�
 batch_size = 2  # batch_size
 Head_num = 6    # self-attention的头数
 epoch = 300  # 最多训练轮次，如果开早停了这个设大点没有影响
-learn_rate = 0.0001  # 初始学习率
+learn_rate = 1e-4   # 初始学习率
 dropout = 0.5  # 每一个AttentionWithFFNAndLjn模块的dropout比例
 ffn_hidden_mult = 2  # 隐藏层映射到高维的倍数  隐藏层大小 = 输入层大小 * ffn_hidden_mult
-sae_hidden_nums = 300
+sae_hidden_nums = 512
 
 
 L1_en = False
 L1_weight_decay = 0.01  # L1正则化参数
 L2_en = False
-L2_weight_decay = 1e-3  # L2正则化参数
+L2_weight_decay = 1e-2  # L2正则化参数
 
 
 # 其他设置
@@ -39,3 +39,8 @@ EarlyStop_epoch = 30  # 从多少轮开始启用早停策略（若刚开始就�
 Windows_num = 116  # 时间窗的个数
 Vector_len = int(116 * 115 / 2) if not kendall else kendall_nums  # 上三角展开后的长度
 data_num = -1  # 数据集个数(自动获取)
+
+
+
+
+

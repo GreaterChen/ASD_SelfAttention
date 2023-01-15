@@ -2,13 +2,14 @@ from requirements import *
 
 
 class SelfAttention(nn.Module):
-    def __init__(self, num_attention_heads, input_size, dim_qk, dim_v):
+    def __init__(self, num_attention_heads, input_size, dim_qk, dim_v, last_layer):
         """
         Self-Attention模块
         :param num_attention_heads: 多头注意力中的头数
         :param input_size: Self-Attention输入层的尺寸
         :param dim_qk: QK矩阵的维度,不考虑多头
         :param dim_v: V矩阵的维度,不考虑多头(决定了降维的输出尺寸)
+        :param last_layer: 是否为最后一层
         """
         super(SelfAttention, self).__init__()
 
@@ -18,6 +19,7 @@ class SelfAttention(nn.Module):
         self.norm_fact = 1 / sqrt(dim_qk // num_attention_heads)  # 根号下dk
         self.dim_qk = dim_qk
         self.dim_v = dim_v
+        self.last_layer = last_layer
 
         # QKV三个矩阵变换
         self.query_layer = nn.Linear(self.signle_head_size, self.dim_qk * self.num_attention_heads, bias=False)
@@ -48,9 +50,11 @@ class SelfAttention(nn.Module):
         attention_probs = F.softmax(attention_scores, dim=-1)
 
         context = torch.matmul(attention_probs, value_heads)
+        temp = context.clone()
         context = context.permute(0, 2, 1, 3).contiguous()
         new_size = context.size()[:-2] + (self.dim_v * self.num_attention_heads,)
-        context = context.view(*new_size)
+        context = context.view(*new_size)  # [2,116,300]
+
         return context
 
 

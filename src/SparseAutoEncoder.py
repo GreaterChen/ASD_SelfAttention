@@ -13,7 +13,7 @@ class AutoEncoder(nn.Module):
         self.output_dim = output_dim
         self.encoder = nn.Sequential(
             nn.Linear(input_dim, output_dim),
-            nn.ReLU()
+            nn.ReLU(),
         )
         self.decoder = nn.Sequential(
             nn.Linear(output_dim, input_dim),
@@ -80,7 +80,7 @@ if __name__ == '__main__':
 
             loss = loss_fn(decoder_out, x)
             # loss += L1_reg_loss(model)
-            loss += beta * KL_devergence(rho_tensor, encoder_out)
+            # loss += beta * KL_devergence(rho_tensor, encoder_out)
             train_total_loss += loss.item() * batch_size
 
             optimizer.zero_grad()
@@ -97,7 +97,7 @@ if __name__ == '__main__':
             encoder_out, decoder_out = model(x)
 
             loss = loss_fn(decoder_out, x)
-            loss += beta * KL_devergence(rho_tensor, encoder_out)
+            # loss += beta * KL_devergence(rho_tensor, encoder_out)
             test_total_loss += loss.item()
         p_table.add_row([e + 1, format(float(train_total_loss), ".3f"), format(float(test_total_loss), ".3f")])
         print("\n", p_table)

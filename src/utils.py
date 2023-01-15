@@ -1,6 +1,6 @@
-
 from requirements import *
 from args import *
+from sklearn.decomposition import PCA
 
 
 class GetData(Dataset):
@@ -25,18 +25,17 @@ class GetData(Dataset):
 
         data = pd.read_csv("../description/kendall_sort.csv")
         index = np.array(data.iloc[:kendall_nums, 0])
+        pca = PCA(100)
+
         for file in tqdm(self.files, desc='Datasets', file=sys.stdout):
             file_path = root_path + "/" + file
-            if 'csv' in root_path:
-                if fisher_r2z:
-                    self.data.append(torch.as_tensor(np.arctanh(pd.read_csv(file_path).iloc[:, index].values)))
-                else:
-                    self.data.append(torch.as_tensor(pd.read_csv(file_path).values))  # 转化为tensor类型
-            elif 'pkl' in root_path:
-                if fisher_r2z:
-                    self.data.append(torch.as_tensor(np.arctanh(pd.read_pickle(file_path).iloc[:, index].values)))
-                else:
-                    self.data.append(torch.as_tensor(pd.read_pickle(file_path).iloc[:, index].values))
+            if fisher_r2z:
+                temp = pd.read_pickle(file_path).iloc[:, index].values
+                temp = np.arctanh(temp)
+                self.data.append(torch.as_tensor(temp))
+            else:
+                temp = pd.read_pickle(file_path).iloc[:, index].values
+                self.data.append(torch.as_tensor(temp))
 
         label = list(zip(self.label_info.group_1.values, self.label_info.group_2.values))
 
@@ -156,20 +155,35 @@ class EarlyStopping:
         self.val_loss_min = val_loss
 
 
-def Draw_ROC(Y_train, Y_pred, desc, fold):
-    fpr, tpr, thresholds_keras = roc_curve(Y_train, Y_pred)
-    AUC = auc(fpr, tpr)
-    plt.figure()
-    plt.plot([0, 1], [0, 1], 'k--')
-    plt.plot(fpr, tpr, label="AUC={:.3f}".format(AUC))
-    plt.xlabel('FPR')
-    plt.ylabel('TPR')
-    plt.title(f'{fold}-{desc} ROC curve')
-    plt.legend()
-    plt.savefig(f"../result/pic/{fold}_roc.png", dpi=500)
-    plt.show()
+class ROC:
+    def __init__(self):
+        self.best_fpr = None
+        self.best_tpr = None
+        self.best_auc = 0
+        self.epoch = None
+        self.fold = None
 
-    return AUC
+    def GetROC(self, Y_train, Y_pred, epoch, fold):
+        fpr, tpr, thresholds_keras = roc_curve(Y_train, Y_pred)
+        AUC = auc(fpr, tpr)
+        if AUC > self.best_auc:
+            self.epoch = epoch
+            self.fold = fold
+            self.best_fpr = fpr
+            self.best_tpr = tpr
+            self.best_auc = AUC
+        return AUC
+
+    def DrawROC(self):
+        plt.figure()
+        plt.plot([0, 1], [0, 1], 'k--')
+        plt.plot(self.best_fpr, self.best_tpr, label="AUC={:.3f}".format(self.best_auc))
+        plt.xlabel('FPR')
+        plt.ylabel('TPR')
+        plt.title(f'{self.fold}-{self.epoch} ROC curve')
+        plt.legend()
+        plt.savefig(f"../result/pic/{self.fold}_roc.png", dpi=500)
+        plt.show()
 
 
 def GetAvg(a):
@@ -204,3 +218,47 @@ def CheckOrder(files, label):
     else:
         print("数据、标签未对准！请暂停检查！")
         return False
+
+
+def SaveArgsInfo():
+    args = []
+    value = [dataset_size, batch_size, Head_num, epoch, learn_rate, dropout, ffn_hidden_mult, sae_hidden_nums, L1_en,
+             L1_weight_decay, L2_en, L2_weight_decay, fisher_r2z, kendall, kendall_nums, pin_memory, num_workers,
+             pre_train, EarlyStop, EarlyStop_patience, EarlyStop_epoch, Windows_num, Vector_len, data_num]
+
+    args.append("dataset_size")
+    args.append("batch_size")
+    args.append("Head_num")
+    args.append("epoch")
+    args.append("learn_rate")
+    args.append("dropout")
+    args.append("ffn_hidden_mult")
+    args.append("sae_hidden_nums")
+    args.append("L1_en")
+    args.append("L1_weight_decay")
+    args.append("L2_en")
+    args.append("L2_weight_decay")
+    args.append("fisher_r2z")
+    args.append("kendall")
+    args.append("kendall_nums")
+    args.append("pin_memory")
+    args.append("num_workers")
+    args.append("pre_train")
+    args.append("EarlyStop")
+    args.append("EarlyStop_patience")
+    args.append("EarlyStop_epoch")
+    args.append("Windows_num")
+    args.append("Vector_len")
+    args.append("data_num")
+
+    desc = pd.DataFrame()
+    desc["args"] = args
+    desc["value"] = value
+    desc.to_csv("../result/Args.csv")
+
+
+def L1_decay(model):
+    regularization_loss = 0
+    for param in model.parameters():
+        regularization_loss += torch.sum(abs(param))
+    return regularization_loss

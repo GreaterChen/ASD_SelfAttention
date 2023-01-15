@@ -19,4 +19,3 @@ from math import sqrt
 import torch.optim.lr_scheduler
 from torch.cuda.amp import autocast
 from torch.cuda.amp import GradScaler
-from torchstat import stat
