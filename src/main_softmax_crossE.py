@@ -48,7 +48,10 @@ def Train():
         # loss_fn = WeightedFocalLoss(alpha=0.55, gamma=1)
         # 优化器：SGD
         lr = learn_rate
-        optimizer = torch.optim.SGD(module.parameters(), lr=lr)
+        if L2_en:
+            optimizer = torch.optim.SGD(module.parameters(), lr=lr, weight_decay=L2_weight_decay)
+        else:
+            optimizer = torch.optim.SGD(module.parameters(), lr=lr)
 
         # scheduler = torch.optim.lr_scheduler.OneCycleLR(optimizer, max_lr=0.5, total_steps=100)
 
@@ -173,12 +176,6 @@ def Train():
             if ACC > best_acc:
                 best_acc = ACC
 
-            if epoch_i == 30:
-                lr = 1e-4
-                print("lr has changed to ", lr)
-                for param_group in optimizer.param_groups:
-                    param_group["lr"] = lr
-
             AUC = roc.GetROC(Y_train, Y_pred, epoch_i + 1, k + 1)
             AUC_list.append(AUC)
 
@@ -196,6 +193,12 @@ def Train():
                  format(float(SPE), '.3f'),
                  format(float(AUC), '.3f'),
                  format(float(time.time() - last_time), '.2f')])
+
+            if epoch_i > 10 and train_loss_list[-2] - train_loss_list[-1] > 2:
+                lr = lr*0.5
+                print("lr has changed to ", lr)
+                for param_group in optimizer.param_groups:
+                    param_group["lr"] = lr
 
             last_time = time.time()
             print(p_table)

@@ -3,7 +3,7 @@ dataset_size = -1  # 训练的样本总数,-1代表全部训练,调试的时候�
 batch_size = 2  # batch_size
 Head_num = 6    # self-attention的头数
 epoch = 300  # 最多训练轮次，如果开早停了这个设大点没有影响
-learn_rate = 1e-5   # 初始学习率
+learn_rate = 1e-4   # 初始学习率
 dropout = 0.5  # 每一个AttentionWithFFNAndLjn模块的dropout比例
 ffn_hidden_mult = 2  # 隐藏层映射到高维的倍数  隐藏层大小 = 输入层大小 * ffn_hidden_mult
 sae_hidden_nums = 512
@@ -11,7 +11,7 @@ sae_hidden_nums = 512
 
 L1_en = False
 L1_weight_decay = 1e-3  # L1正则化参数
-L2_en = False
+L2_en = True
 L2_weight_decay = 1e-1  # L2正则化参数
 
 
