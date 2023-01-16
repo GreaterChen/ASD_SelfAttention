@@ -6,7 +6,7 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 
 class Regularization(torch.nn.Module):
-    def __init__(self, model, weight_decay, p=2):
+    def __init__(self,  weight_decay, p=2):
         '''
         :param model 模型
         :param weight_decay:正则化参数
@@ -17,10 +17,8 @@ class Regularization(torch.nn.Module):
         if weight_decay <= 0:
             print("param weight_decay can not <=0")
             exit(0)
-        self.model = model
         self.weight_decay = weight_decay
         self.p = p
-        self.weight_list = self.get_weight(model)
 
     def to(self, device):
         '''

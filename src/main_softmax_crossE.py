@@ -4,28 +4,6 @@ from utils import *
 from Module import Module
 from Regularization import *
 
-
-
-class AutoEncoder(nn.Module):
-    def __init__(self, input_dim, output_dim):
-        super(AutoEncoder, self).__init__()
-        self.input_dim = input_dim
-        self.output_dim = output_dim
-        self.encoder = nn.Sequential(
-            nn.Linear(input_dim, output_dim),
-            nn.ReLU()
-        )
-        self.decoder = nn.Sequential(
-            nn.Linear(output_dim, input_dim),
-            nn.Sigmoid()
-        )
-
-    def forward(self, x):
-        encoder_out = self.encoder(x)
-        decoder_out = self.decoder(encoder_out)
-        return encoder_out, decoder_out
-
-
 def Train():
     global Y_train, Y_pred, epoch_i, auc_list, best_acc, best_acc_list
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -47,6 +25,7 @@ def Train():
 
     AUC_list_kf = []
 
+    best_acc_list = []
     split_range = 0
     last_time = time.time()
     k = 0  # 表征第几折
@@ -63,12 +42,13 @@ def Train():
 
         # 损失函数：交叉熵
         loss_fn = nn.CrossEntropyLoss().to(device)
-        loss_fn = loss_fn.cuda()
+
+        # loss_fn = dot_loss().to(device)
+
+        # loss_fn = WeightedFocalLoss(alpha=0.55, gamma=1)
         # 优化器：SGD
         lr = learn_rate
-        optimizer = torch.optim.SGD(module.parameters(), lr=lr, weight_decay=L2_weight_decay if L2_en else 0)
-        L1_reg_loss = Regularization(module, L1_weight_decay, p=1).to(device)
-        L2_reg_loss = Regularization(module, L2_weight_decay, p=2).to(device)
+        optimizer = torch.optim.SGD(module.parameters(), lr=lr)
 
         # scheduler = torch.optim.lr_scheduler.OneCycleLR(optimizer, max_lr=0.5, total_steps=100)
 
@@ -101,7 +81,7 @@ def Train():
         SEN_list = []
         SPE_list = []
         AUC_list = []
-        best_acc_list = []
+
         best_acc = 0
 
         # 下面开始当前折的训练
@@ -135,8 +115,7 @@ def Train():
                 optimizer.zero_grad()
                 with autocast():
                     output = module(x)
-                    loss = loss_fn(output, y) + L1_decay(module)
-
+                    loss = loss_fn(output, y)
                 epoch_train_loss += loss.item() * batch_size
 
                 scaler.scale(loss).backward()
@@ -262,6 +241,7 @@ def Train():
             SaveArgsInfo()
 
     print("全局最优准确率：", max(best_acc_list))
+    # print(best_acc_list)
     print("全局平均最优准确率：", np.mean(best_acc_list))
     avg_train_acc = GetAvg(train_acc_list_kf)
     avg_train_loss = GetAvg(train_loss_list_kf)

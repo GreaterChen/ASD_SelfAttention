@@ -3,10 +3,7 @@ import os
 import pandas as pd
 import numpy as np
 
-path = "../../raw_data/rois_aal_pkl_pearson/"
-files = os.listdir(path)
-data = pd.read_pickle(path+files[0])
-print(data.shape)
-# a = pd.DataFrame([[1, 2, 3], [4, 5, 6]])
-z = np.arctanh(data)
-print(z)
+path = "description/label_674.csv"
+label = pd.read_csv(path)
+label = list(zip(label.group_1.values, label.group_2.values))
+print(label)

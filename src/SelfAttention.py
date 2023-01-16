@@ -50,7 +50,6 @@ class SelfAttention(nn.Module):
         attention_probs = F.softmax(attention_scores, dim=-1)
 
         context = torch.matmul(attention_probs, value_heads)
-        temp = context.clone()
         context = context.permute(0, 2, 1, 3).contiguous()
         new_size = context.size()[:-2] + (self.dim_v * self.num_attention_heads,)
         context = context.view(*new_size)  # [2,116,300]

@@ -262,3 +262,31 @@ def L1_decay(model):
     for param in model.parameters():
         regularization_loss += torch.sum(abs(param))
     return regularization_loss
+
+
+class dot_loss(nn.Module):
+    def __init__(self):
+        super(dot_loss, self).__init__()
+
+    def forward(self, y_pred, y_true):
+        loss = - torch.sum(y_pred * y_true, dim=1)  # batch_size X 1
+        return loss.mean()
+
+
+class WeightedFocalLoss(nn.Module):
+    "Non weighted version of Focal Loss"
+
+    def __init__(self, alpha=.25, gamma=2):
+        super(WeightedFocalLoss, self).__init__()
+        self.alpha = torch.tensor([alpha, 1 - alpha]).cuda()
+        self.gamma = gamma
+
+    def forward(self, inputs, targets):
+        BCE_loss = F.binary_cross_entropy_with_logits(inputs, targets, reduction='none')
+
+        targets = targets.type(torch.long)
+        at = self.alpha.gather(0, targets.data.view(-1))
+        at = at.view(batch_size, 2)
+        pt = torch.exp(-BCE_loss)
+        F_loss = targets * (1 - pt) ** self.gamma * BCE_loss
+        return F_loss.mean()
