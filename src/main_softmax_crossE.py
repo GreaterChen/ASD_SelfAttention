@@ -4,6 +4,7 @@ from utils import *
 from Module import Module
 from Regularization import *
 
+
 def Train():
     global Y_train, Y_pred, epoch_i, auc_list, best_acc, best_acc_list
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -22,14 +23,19 @@ def Train():
 
     SEN_list_kf = []
     SPE_list_kf = []
-
-    AUC_list_kf = []
+    PPV_list_kf = []
+    NPV_list_kf = []
 
     best_acc_list = []
     split_range = 0
     last_time = time.time()
     k = 0  # 表征第几折
     for train_index, test_index in kf.split(all_data):  # 此处获取每一折的索引
+        if k < begin_fold - 1:
+            k += 1
+            continue
+        if k == end_fold:
+            break
         # 对于每一折来说，都要从0开始训练模型
         # 因为如果不同折训练同一个模型，会出现当前折的测试集曾被另一折当作训练集训练，导致准确率异常
         if pre_train:
@@ -43,9 +49,11 @@ def Train():
         # 损失函数：交叉熵
         loss_fn = nn.CrossEntropyLoss().to(device)
 
+        # L1_loss = Regularization(L1_weight_decay, p=1).to(device)
+
         # loss_fn = dot_loss().to(device)
 
-        # loss_fn = WeightedFocalLoss(alpha=0.55, gamma=1)
+        # loss_fn = WeightedFocalLoss(alpha=1.2, gamma=1).to(device)
         # 优化器：SGD
         lr = learn_rate
         if L2_en:
@@ -53,13 +61,11 @@ def Train():
         else:
             optimizer = torch.optim.SGD(module.parameters(), lr=lr)
 
-        # scheduler = torch.optim.lr_scheduler.OneCycleLR(optimizer, max_lr=0.5, total_steps=100)
-
         early_stop = EarlyStopping(patience=EarlyStop_patience)
         roc = ROC()
 
         p_table = PrettyTable(
-            ["epoch", "train_loss", "train_acc", "test_loss", "test_acc", "best_acc", "SEN", "SPE", "AUC", "time(s)"])
+            ["epoch", "train_loss", "train_acc", "test_loss", "test_acc", "best_acc", "lr(1e4)", "AUC", "time(s)"])
 
         # 此处获取真正的该折数据
         train_fold = Subset(all_data, train_index)
@@ -84,6 +90,8 @@ def Train():
         SEN_list = []
         SPE_list = []
         AUC_list = []
+        PPV_list = []
+        NPV_list = []
 
         best_acc = 0
 
@@ -107,7 +115,7 @@ def Train():
 
             module.train()
             # 下面开始当前折、当前轮的训练，即以batch_size的大小进行训练
-            for data in tqdm(train_dataloader, desc=f'train-Fold{split_range}-Epoch{epoch_i + 1}', file=sys.stdout):
+            for data in tqdm(train_dataloader, desc=f'train-Fold{k + 1}-Epoch{epoch_i + 1}', file=sys.stdout):
                 if early_stop.early_stop:
                     print("触发早停")
                     break
@@ -118,7 +126,10 @@ def Train():
                 optimizer.zero_grad()
                 with autocast():
                     output = module(x)
-                    loss = loss_fn(output, y)
+                    if L1_en:
+                        loss = loss_fn(output, y) + L1_decay(module)
+                    else:
+                        loss = loss_fn(output, y)
                 epoch_train_loss += loss.item() * batch_size
 
                 scaler.scale(loss).backward()
@@ -140,7 +151,7 @@ def Train():
 
             module.eval()  # 设置测试模式
             with torch.no_grad():
-                for data in tqdm(test_dataloader, desc=f'test-Fold{split_range}-Epoch{epoch_i + 1}', file=sys.stdout):
+                for data in tqdm(test_dataloader, desc=f'test-Fold{k + 1}-Epoch{epoch_i + 1}', file=sys.stdout):
                     x, y = data
                     x = x.cuda()
                     y = y.cuda()
@@ -168,9 +179,19 @@ def Train():
             ACC = (TP + TN) / (TP + TN + FP + FN)  # 准确率
             SEN = TP / (TP + FN)  # 灵敏度
             SPE = TN / (TN + FP)  # 特异性
-
+            if TP + FP == 0:
+                PPV = -1
+            else:
+                PPV = TP / (TP + FP)  # 正预测率
+            if TN + FN == 0:
+                NPV = -1
+            else:
+                NPV = TN / (TN + FN)  # 负预测率
             SEN_list.append(SEN)
             SPE_list.append(SPE)
+            PPV_list.append(PPV)
+            NPV_list.append(NPV)
+
             test_acc_list.append(ACC)
             test_loss_list.append(float(epoch_test_loss))
             if ACC > best_acc:
@@ -189,13 +210,12 @@ def Train():
                  format(float(test_loss_list[-1]), '.3f'),
                  format(float(test_acc_list[-1]), '.4f'),
                  format(float(best_acc), '.4f'),
-                 format(float(SEN), '.3f'),
-                 format(float(SPE), '.3f'),
+                 format(float(lr*1e4), '.4f'),
                  format(float(AUC), '.3f'),
                  format(float(time.time() - last_time), '.2f')])
 
-            if epoch_i > 10 and train_loss_list[-2] - train_loss_list[-1] > 2:
-                lr = lr*0.5
+            if epoch_i > 10 and train_loss_list[-2] - train_loss_list[-1] > 3:
+                lr = lr * 0.5
                 print("lr has changed to ", lr)
                 for param_group in optimizer.param_groups:
                     param_group["lr"] = lr
@@ -223,28 +243,30 @@ def Train():
 
         SEN_list_kf.append(SEN_list)
         SPE_list_kf.append(SPE_list)
-        AUC_list_kf.append(AUC_list)
+        PPV_list_kf.append(PPV_list)
+        NPV_list_kf.append(NPV_list)
 
         K_Fold_res = pd.DataFrame()
-        K_Fold_res['训练集损失值'] = train_loss_list_kf[k]
-        K_Fold_res['训练集准确率'] = train_acc_list_kf[k]
-        K_Fold_res['测试集损失值'] = test_loss_list_kf[k]
-        K_Fold_res['测试集准确率'] = test_acc_list_kf[k]
-        K_Fold_res['灵敏度'] = SEN_list_kf[k]
-        K_Fold_res['特异性'] = SPE_list_kf[k]
+        K_Fold_res['训练集损失值'] = train_loss_list_kf[-1]
+        K_Fold_res['训练集准确率'] = train_acc_list_kf[-1]
+        K_Fold_res['测试集损失值'] = test_loss_list_kf[-1]
+        K_Fold_res['测试集准确率'] = test_acc_list_kf[-1]
+        K_Fold_res['灵敏度'] = SEN_list_kf[-1]
+        K_Fold_res['特异性'] = SPE_list_kf[-1]
+        K_Fold_res['正预测率'] = PPV_list_kf[-1]
+        K_Fold_res['负预测率'] = NPV_list_kf[-1]
         K_Fold_res.to_csv(f"../result/{k + 1}_Fold.csv", encoding='utf_8_sig')
         k += 1
-        del module
-        torch.cuda.empty_cache()
-        torch.cuda.empty_cache()
-        torch.cuda.empty_cache()
-
+        # del module
+        # torch.cuda.empty_cache()
+        # torch.cuda.empty_cache()
+        # torch.cuda.empty_cache()
+        #
         lr = learn_rate
         if k == 1:
             SaveArgsInfo()
 
     print("全局最优准确率：", max(best_acc_list))
-    # print(best_acc_list)
     print("全局平均最优准确率：", np.mean(best_acc_list))
     avg_train_acc = GetAvg(train_acc_list_kf)
     avg_train_loss = GetAvg(train_loss_list_kf)
@@ -253,7 +275,8 @@ def Train():
 
     avg_sen = GetAvg(SEN_list_kf)
     avg_spe = GetAvg(SPE_list_kf)
-    avg_auc = GetAvg(AUC_list_kf)
+    avg_ppv = GetAvg(PPV_list_kf)
+    avg_npv = GetAvg(NPV_list_kf)
 
     res = pd.DataFrame()
     res['训练集准确率'] = avg_train_acc
@@ -262,6 +285,9 @@ def Train():
     res['测试集损失值'] = avg_test_loss
     res['灵敏度'] = avg_sen
     res['特异性'] = avg_spe
+    res['正预测率'] = avg_ppv
+    res['负预测率'] = avg_npv
+
     res.to_csv("../result/result.csv", encoding='utf_8_sig')
 
     # 传结果list格式： [train(list), test(list)]

@@ -93,7 +93,7 @@ class AddNorm(nn.Module):
         Y: X变换后的Y
         return: 残差连接&层归一化结果
         '''
-        return self.layernorm(self.dropout(Y) + X)
+        return self.layernorm(self.dropout(Y)+X)
 
 
 class AttentionWithFFNAndLn(nn.Module):

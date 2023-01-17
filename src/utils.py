@@ -134,7 +134,7 @@ class EarlyStopping:
             self.trace_func(f'EarlyStopping counter: {self.counter} out of {self.patience}')
 
             if self.counter % 5 == 0:
-                lr_c = lr * 0.2
+                lr_c = lr * decay
                 print("lr is changed from", lr, "to", lr_c)
 
             if self.counter >= self.patience:
@@ -222,7 +222,8 @@ def CheckOrder(files, label):
 
 def SaveArgsInfo():
     args = []
-    value = [dataset_size, batch_size, Head_num, epoch, learn_rate, dropout, ffn_hidden_mult, sae_hidden_nums, L1_en,
+    value = [dataset_size, batch_size, Head_num, epoch, learn_rate, dropout, ffn_hidden_mult, begin_fold, end_fold,
+             L1_en,
              L1_weight_decay, L2_en, L2_weight_decay, fisher_r2z, kendall, kendall_nums, pin_memory, num_workers,
              pre_train, EarlyStop, EarlyStop_patience, EarlyStop_epoch, Windows_num, Vector_len, data_num]
 
@@ -233,7 +234,8 @@ def SaveArgsInfo():
     args.append("learn_rate")
     args.append("dropout")
     args.append("ffn_hidden_mult")
-    args.append("sae_hidden_nums")
+    args.append("begin_fold")
+    args.append("end_fold")
     args.append("L1_en")
     args.append("L1_weight_decay")
     args.append("L2_en")
@@ -274,7 +276,7 @@ class dot_loss(nn.Module):
 
 
 class WeightedFocalLoss(nn.Module):
-    "Non weighted version of Focal Loss"
+    """Non weighted version of Focal Loss"""
 
     def __init__(self, alpha=.25, gamma=2):
         super(WeightedFocalLoss, self).__init__()
@@ -288,5 +290,7 @@ class WeightedFocalLoss(nn.Module):
         at = self.alpha.gather(0, targets.data.view(-1))
         at = at.view(batch_size, 2)
         pt = torch.exp(-BCE_loss)
-        F_loss = targets * (1 - pt) ** self.gamma * BCE_loss
+        F_loss = at * (1 - pt) ** self.gamma * BCE_loss
         return F_loss.mean()
+
+

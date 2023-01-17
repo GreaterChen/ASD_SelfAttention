@@ -5,14 +5,19 @@ Head_num = 6    # self-attention的头数
 epoch = 300  # 最多训练轮次，如果开早停了这个设大点没有影响
 learn_rate = 1e-4   # 初始学习率
 dropout = 0.5  # 每一个AttentionWithFFNAndLjn模块的dropout比例
-ffn_hidden_mult = 2  # 隐藏层映射到高维的倍数  隐藏层大小 = 输入层大小 * ffn_hidden_mult
-sae_hidden_nums = 512
+ffn_hidden_mult = 4  # 隐藏层映射到高维的倍数  隐藏层大小 = 输入层大小 * ffn_hidden_mult
 
 
 L1_en = False
 L1_weight_decay = 1e-3  # L1正则化参数
 L2_en = True
-L2_weight_decay = 1e-1  # L2正则化参数
+L2_weight_decay = 0.1  # L2正则化参数
+
+decay = 0.8
+
+
+begin_fold = 0  # 开始训练的轮数
+end_fold = 5    # 结束训练的轮数
 
 
 # 其他设置
@@ -40,7 +45,7 @@ Windows_num = 116  # 时间窗的个数
 Vector_len = int(116 * 115 / 2) if not kendall else kendall_nums  # 上三角展开后的长度
 data_num = -1  # 数据集个数(自动获取)
 
-
+# 306 368
 
 
 
