@@ -14,6 +14,11 @@ def Train():
     kf = KFold(n_splits=5, shuffle=True, random_state=seed)  # 初始化5折交叉验证的工具
 
     torch.manual_seed(seed)
+    np.random.seed(seed)
+    if torch.cuda.is_available():
+        torch.cuda.manual_seed(seed)
+        torch.cuda.manual_seed_all(seed)
+        torch.manual_seed(seed)
 
     # 对每一折进行记录
     train_acc_list_kf = []
@@ -49,7 +54,7 @@ def Train():
         # 损失函数：交叉熵
         loss_fn = nn.CrossEntropyLoss().to(device)
 
-        # L1_loss = Regularization(L1_weight_decay, p=1).to(device)
+        L1_loss = Regularization(L1_weight_decay, p=1).to(device)
 
         # loss_fn = dot_loss().to(device)
 
@@ -65,7 +70,7 @@ def Train():
         roc = ROC()
 
         p_table = PrettyTable(
-            ["epoch", "train_loss", "train_acc", "test_loss", "test_acc", "best_acc", "lr(1e4)", "AUC", "time(s)"])
+            ["epoch", "train_loss", "train_acc", "test_loss", "test_acc", "best_acc", "lr(1e-4)", "AUC", "time(s)"])
 
         # 此处获取真正的该折数据
         train_fold = Subset(all_data, train_index)
@@ -156,7 +161,6 @@ def Train():
                     x = x.cuda()
                     y = y.cuda()
                     y = y.to(torch.float32)
-
                     output = module(x)
                     loss = loss_fn(output, y)
                     epoch_test_loss += loss.item() * batch_size
@@ -214,8 +218,8 @@ def Train():
                  format(float(AUC), '.3f'),
                  format(float(time.time() - last_time), '.2f')])
 
-            if epoch_i > 10 and train_loss_list[-2] - train_loss_list[-1] > 3:
-                lr = lr * 0.5
+            if epoch_i > 3 and train_loss_list[-2] - train_loss_list[-1] > 3:
+                lr = lr * decay
                 print("lr has changed to ", lr)
                 for param_group in optimizer.param_groups:
                     param_group["lr"] = lr
@@ -257,14 +261,7 @@ def Train():
         K_Fold_res['负预测率'] = NPV_list_kf[-1]
         K_Fold_res.to_csv(f"../result/{k + 1}_Fold.csv", encoding='utf_8_sig')
         k += 1
-        # del module
-        # torch.cuda.empty_cache()
-        # torch.cuda.empty_cache()
-        # torch.cuda.empty_cache()
-        #
-        lr = learn_rate
-        if k == 1:
-            SaveArgsInfo()
+        SaveArgsInfo()
 
     print("全局最优准确率：", max(best_acc_list))
     print("全局平均最优准确率：", np.mean(best_acc_list))

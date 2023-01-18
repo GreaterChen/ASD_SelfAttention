@@ -1,6 +1,10 @@
+import numpy as np
+
 from requirements import *
 from args import *
 from sklearn.decomposition import PCA
+
+eps = 1e-5
 
 
 class GetData(Dataset):
@@ -23,9 +27,8 @@ class GetData(Dataset):
         if not CheckOrder(self.files, self.label_info):
             exit()
 
-        data = pd.read_csv("../description/kendall_sort.csv")
-        index = np.array(data.iloc[:kendall_nums, 0])
-        pca = PCA(100)
+        data = pd.read_csv("../description/Kendall_sort_all.csv")
+        index = np.array(data.iloc[:kendall_nums, 1])
 
         for file in tqdm(self.files, desc='Datasets', file=sys.stdout):
             file_path = root_path + "/" + file
@@ -133,7 +136,7 @@ class EarlyStopping:
             self.counter += 1
             self.trace_func(f'EarlyStopping counter: {self.counter} out of {self.patience}')
 
-            if self.counter % 5 == 0:
+            if self.counter % 10 == 0:
                 lr_c = lr * decay
                 print("lr is changed from", lr, "to", lr_c)
 
@@ -294,3 +297,37 @@ class WeightedFocalLoss(nn.Module):
         return F_loss.mean()
 
 
+class SelectItem(nn.Module):
+    def __init__(self, item_index):
+        super(SelectItem, self).__init__()
+        self._name = 'selectitem'
+        self.item_index = item_index
+
+    def forward(self, inputs):
+        return inputs[self.item_index]
+
+
+def ZCAWhite(temp):
+    sigma = temp.dot(temp.T) / temp.shape[1]
+    [u, s, v] = np.linalg.svd(sigma)
+    temp = u.dot(np.diag(1. / np.sqrt(s + eps))).dot(u.T.dot(temp))
+    return temp
+
+
+def PCA_test(data):
+    print(data.shape)
+    sigma = data.dot(data.T) / data.shape[1]
+    [u, s, v] = np.linalg.svd(sigma)
+    xRot = u.T.dot(data)
+    print(u.shape)
+    xRot[0:1024, :] = u[:, 0:1024].T.dot(data)
+    print(xRot.shape)
+    return xRot[0:1024, :]
+
+
+def PCAWhite(data):
+    sigma = data.dot(data.T) / data.shape[1]
+    [u, s, v] = np.linalg.svd(sigma)
+    xPCAWhite = np.diag(1. / np.sqrt(s + eps)).dot(u.T.dot(data))
+    print(xPCAWhite.shape)
+    return xPCAWhite

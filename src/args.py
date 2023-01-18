@@ -4,19 +4,17 @@ batch_size = 2  # batch_size
 Head_num = 6    # self-attention的头数
 epoch = 300  # 最多训练轮次，如果开早停了这个设大点没有影响
 learn_rate = 1e-4   # 初始学习率
-dropout = 0.5  # 每一个AttentionWithFFNAndLjn模块的dropout比例
+dropout = 0.5  # 每一个AttentionWithFFNAndLnn模块的dropout比例
 ffn_hidden_mult = 4  # 隐藏层映射到高维的倍数  隐藏层大小 = 输入层大小 * ffn_hidden_mult
-
 
 L1_en = False
 L1_weight_decay = 1e-3  # L1正则化参数
 L2_en = True
 L2_weight_decay = 0.1  # L2正则化参数
 
-decay = 0.8
+decay = 0.5
 
-
-begin_fold = 0  # 开始训练的轮数
+begin_fold = 1  # 开始训练的轮数
 end_fold = 5    # 结束训练的轮数
 
 
@@ -37,8 +35,8 @@ num_workers = 4  # dataloader的线程数
 pre_train = False  # 是否采用预训练模型
 
 EarlyStop = True  # 是否采用早停策略
-EarlyStop_patience = 10  # 能容忍多少次测试集损失值无下降
-EarlyStop_epoch = 50  # 从多少轮开始启用早停策略（若刚开始就使用可能会导致过早的训练停止）
+EarlyStop_patience = 20  # 能容忍多少次测试集损失值无下降
+EarlyStop_epoch = 10  # 从多少轮开始启用早停策略（若刚开始就使用可能会导致过早的训练停止）
 
 # 常量
 Windows_num = 116  # 时间窗的个数
