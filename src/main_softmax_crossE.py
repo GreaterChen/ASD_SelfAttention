@@ -52,7 +52,7 @@ def Train():
         scaler = GradScaler()
 
         # 损失函数：交叉熵
-        loss_fn = PrototypeLoss().to(device)
+        loss_fn = PrototypeLoss(module).to(device)
         # loss_fn = nn.CrossEntropyLoss().to(device)
 
         # L1_loss = Regularization(L1_weight_decay, p=1).to(device)
@@ -101,15 +101,6 @@ def Train():
 
         best_acc = 0
 
-        for data in train_dataloader:
-            x, y = data
-            x = x.to(device)
-            y = y.to(device)
-            if y[0][1] > 0.5 > y[1][1] or y[0][1] < 0.5 < y[1][1]:
-                y_pred = module(x)
-                loss_fn(y_pred, y)
-                break
-
         # 下面开始当前折的训练
         for epoch_i in range(epoch):
             if early_stop.early_stop:
@@ -139,19 +130,20 @@ def Train():
                 y = y.cuda()
                 y = y.to(torch.float32)  # 这一步似乎很费时间
                 optimizer.zero_grad()
-                total_loss = 0
                 with autocast():
                     output = module(x)
                     loss, pro_result = loss_fn(output, y)
+                    # loss = loss_fn(output, y)
                 epoch_train_loss += loss.item() * batch_size
 
-                # scaler.scale(loss).backward()
-                # scaler.step(optimizer)
-                # scaler.update()
-                loss.backward(retain_graph=True)
-                optimizer.step()
+                scaler.scale(loss).backward()
+                scaler.step(optimizer)
+                scaler.update()
+                # loss.backward()
+                # ploss.backward()
+                # optimizer.step()
                 train_acc = 0
-                for i, res in enumerate(pro_result):
+                for i, res in enumerate(output):
                     if res[0] > res[1]:
                         train_acc = train_acc + 1 if y[i][0] > y[i][1] else train_acc
                     if res[0] < res[1]:
@@ -171,9 +163,10 @@ def Train():
                     y = y.to(torch.float32)
                     output = module(x)
                     loss, pro_result = loss_fn(output, y)
+                    # loss = loss_fn(output, y)
                     epoch_test_loss += loss.item() * batch_size
                     test_acc = 0
-                    for i, res in enumerate(pro_result):
+                    for i, res in enumerate(output):
                         Y_pred.append(res[0])
                         Y_train.append(y[i][0])
                         if res[0] > res[1]:

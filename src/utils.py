@@ -325,7 +325,7 @@ def PCAWhite(data):
 
 
 class PrototypeLoss(nn.Module):
-    def __init__(self):
+    def __init__(self, model):
         super().__init__()
         self.asd = []  # [label,[xi,xj]]
         self.hc = []
@@ -334,68 +334,66 @@ class PrototypeLoss(nn.Module):
         self.lamda = 1
         self.eps = 1e-1
         self.alpha = 1e-3
+        self.init_prototypes()
+        self.model = model
+
+    def init_prototypes(self):
+        self.asd.append([1, np.array([-0.5, -0.5])])
+        self.hc.append([0, np.array([0.5, 0.5])])
 
     def forward(self, output, y):
-        print(y)
-        print(output)
         self.pro_hc.clear()
         self.pro_asd.clear()
         result = []
-        loss_list = []
         min_distance = torch.tensor(1e9, dtype=torch.float32, requires_grad=True).cuda()
         min_item = None
-        loss = torch.tensor(0, dtype=torch.float32, requires_grad=True).cuda()  # 广义交叉熵损失
+        min_index = -1
         ploss = torch.tensor(1e9, dtype=torch.float32, requires_grad=True).cuda()  # 原型损失
         total_loss = torch.tensor(0, dtype=torch.float32, requires_grad=True).cuda()
         for i in range(batch_size):
             pos = output[i]  # [xi,xj]
-            for item in self.asd:  # 对于所有asd类别的原型
+            for j, item in enumerate(self.asd):  # 对于所有asd类别的原型
                 distance = ((pos[0] - item[1][0]) ** 2 + (pos[1] - item[1][1]) ** 2).sqrt()  # 欧氏距离
                 self.pro_asd.append(torch.exp(-1 * self.lamda * distance))  # 准备做softmax
                 if distance < min_distance:  # 记录距离最近的原型
                     min_distance = distance
                     min_item = item
+                    min_index = j
 
                 if torch.abs(y[i][0] - 1) < self.eps:  # 其实都是整数，但是因为使用浮点数存储，所以用此办法判断一致
-                    ploss = min(ploss, distance)
+                    ploss = torch.min(ploss, distance)
 
-            for item in self.hc:
+            for j, item in enumerate(self.hc):
                 distance = ((pos[0] - item[1][0]) ** 2 + (pos[1] - item[1][1]) ** 2).sqrt()
                 self.pro_hc.append(torch.exp(-1 * self.lamda * distance))
                 if distance < min_distance:
                     min_distance = distance
                     min_item = item
+                    min_index = j
 
                 if torch.abs(y[i][0] - 0) < self.eps:
                     ploss = min(ploss, distance)
-
-            if min_item is None:  # 如果当前一个原型都没有
-                if torch.abs(y[i][0] - 1) < self.eps:  # 如果属于asd
-                    self.asd.append([y[i][0], pos])
-                else:
-                    self.hc.append([y[i][0], pos])
-            else:
+            if self.model.training:
                 if abs(min_item[0] - y[i][0]) < self.eps:  # 如果距离最近的原型和当前样本类别相同
-                    new_pos = (min_item[1] + pos) / 2  # 取均值
+                    new_pos = np.array((min_item[1] + pos.tolist())) / 2  # 取均值
                     if abs(y[i][0] - 1) < self.eps:  # 如果原型来自asd
-                        self.asd.remove(min_item)
+                        self.asd.pop(min_index)
                         self.asd.append([y[i][0], new_pos])
                     else:
-                        self.hc.remove(min_item)
+                        self.hc.pop(min_index)
                         self.hc.append([y[i][0], new_pos])
                 else:  # 如果距离最近的原型和当前样本类别不同
                     if abs(y[i][0] - 1) < self.eps:  # 如果属于asd
-                        self.asd.append([y[i][0], pos])
+                        self.asd.append([int(y[i][0]), np.array(pos.tolist())])
                     else:
-                        self.hc.append([y[i][0], pos])
+                        self.hc.append([int(y[i][0]), np.array(pos.tolist())])
 
-                pro_asd_sum = torch.sum(torch.as_tensor(self.pro_asd))
-                pro_hc_sum = torch.sum(torch.as_tensor(self.pro_hc))
-                print(pro_asd_sum)
+            pro_asd_sum = torch.sum(torch.as_tensor(self.pro_asd))
+            pro_hc_sum = torch.sum(torch.as_tensor(self.pro_hc))
 
-                belongs_asd = pro_asd_sum / (pro_asd_sum + pro_hc_sum)
-                belongs_hc = pro_hc_sum / (pro_asd_sum + pro_hc_sum)
-                result.append([belongs_asd, belongs_hc])
-                loss = -1 * (y[i][0] * torch.log(belongs_asd) + (1 - y[i][0]) * torch.log(belongs_hc))
-                total_loss = total_loss + loss
-        return loss + self.alpha * ploss, result
+            belongs_asd = pro_asd_sum / (pro_asd_sum + pro_hc_sum)
+            belongs_hc = pro_hc_sum / (pro_asd_sum + pro_hc_sum)
+            result.append([belongs_asd, belongs_hc])
+            loss = -1 * (y[i][0] * torch.log(belongs_asd) + (1 - y[i][0]) * torch.log(belongs_hc))
+            total_loss = total_loss + loss
+        return total_loss + ploss, result

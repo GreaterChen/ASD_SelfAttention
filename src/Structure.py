@@ -45,7 +45,6 @@ class Structure(nn.Module):
     def attention_with_ffn_and_ln(self, x):
         x = x.float()
         x = self.AttentionFFNLn_Kandell_32(x)  # [2, 116, 300]
-
         x = x.reshape(x.shape[0], -1)
         output = self.desc_fc(x)
         return output
