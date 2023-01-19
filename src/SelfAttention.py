@@ -49,8 +49,8 @@ class SelfAttention(nn.Module):
 
         attention_probs = F.softmax(attention_scores, dim=-1)
 
-        context = torch.matmul(attention_probs, value_heads)
-        context = context.permute(0, 2, 1, 3).contiguous()
+        context = torch.matmul(attention_probs, value_heads)  # [2,6,116,50]
+        context = context.permute(0, 2, 1, 3).contiguous()  # [2,116,6,50]
         new_size = context.size()[:-2] + (self.dim_v * self.num_attention_heads,)
         context = context.view(*new_size)  # [2,116,300]
 
@@ -93,7 +93,7 @@ class AddNorm(nn.Module):
         Y: X变换后的Y
         return: 残差连接&层归一化结果
         '''
-        return self.layernorm(self.dropout(Y)+X)
+        return self.layernorm(self.dropout(Y) + X)
 
 
 class AttentionWithFFNAndLn(nn.Module):

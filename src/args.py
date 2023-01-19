@@ -1,11 +1,11 @@
 # 超参数
-dataset_size = -1  # 训练的样本总数,-1代表全部训练,调试的时候可以改小点
+dataset_size = 20  # 训练的样本总数,-1代表全部训练,调试的时候可以改小点
 batch_size = 2  # batch_size
-Head_num = 6    # self-attention的头数
+Head_num = 1  # self-attention的头数
 epoch = 300  # 最多训练轮次，如果开早停了这个设大点没有影响
-learn_rate = 1e-4   # 初始学习率
+learn_rate = 1e-4  # 初始学习率
 dropout = 0.5  # 每一个AttentionWithFFNAndLnn模块的dropout比例
-ffn_hidden_mult = 4  # 隐藏层映射到高维的倍数  隐藏层大小 = 输入层大小 * ffn_hidden_mult
+ffn_hidden_mult = 5  # 隐藏层映射到高维的倍数  隐藏层大小 = 输入层大小 * ffn_hidden_mult
 
 L1_en = False
 L1_weight_decay = 1e-3  # L1正则化参数
@@ -14,10 +14,8 @@ L2_weight_decay = 0.1  # L2正则化参数
 
 decay = 0.5
 
-begin_fold = 1  # 开始训练的轮数
-end_fold = 5    # 结束训练的轮数
-
-
+begin_fold = 2  # 开始训练的轮数
+end_fold = 5  # 结束训练的轮数
 # 其他设置
 # root_path = "../raw_data/rois_aal_pkl_pearson"
 root_path = "/root/autodl-tmp/rois_aal_pkl_pearson"
@@ -44,6 +42,3 @@ Vector_len = int(116 * 115 / 2) if not kendall else kendall_nums  # 上三角展
 data_num = -1  # 数据集个数(自动获取)
 
 # 306 368
-
-
-
