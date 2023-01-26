@@ -1,7 +1,7 @@
 # 超参数
 dataset_size = -1  # 训练的样本总数,-1代表全部训练,调试的时候可以改小点
 batch_size = 2  # batch_size
-Head_num = 1  # self-attention的头数
+Head_num = 2  # self-attention的头数
 epoch = 300  # 最多训练轮次，如果开早停了这个设大点没有影响
 learn_rate = 1e-4  # 初始学习率
 dropout = 0.5  # 每一个AttentionWithFFNAndLnn模块的dropout比例
@@ -26,7 +26,7 @@ seed = 99335  # 随机数种子，请在良辰吉日先拜三拜后再更改 993
 fisher_r2z = True  # 是否开启Fisher r-to-z 转化
 
 kendall = True
-kendall_nums = 32*32
+kendall_nums = 32 * 32
 
 pin_memory = True  # 用于dataloader加速训练，但是会增大内存使用量
 num_workers = 4  # dataloader的线程数
@@ -42,3 +42,7 @@ Vector_len = int(116 * 115 / 2) if not kendall else kendall_nums  # 上三角展
 data_num = -1  # 数据集个数(自动获取)
 
 # 306 368
+
+# 日志显示级别 供调试使用
+LOGGER_DISPLAY = False  # True显示日志, False不显示
+LOGGER_DISPLAY_VAR = False  # True显示[变量+变量形状], False显示[变量形状]

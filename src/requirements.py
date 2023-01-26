@@ -21,3 +21,6 @@ from torch.cuda.amp import autocast
 from torch.cuda.amp import GradScaler
 from random import random
 from sklearn import preprocessing
+from utils import Logger
+from args import LOGGER_DISPLAY, LOGGER_DISPLAY_VAR
+log = Logger(display=LOGGER_DISPLAY, ori_var=LOGGER_DISPLAY_VAR)

@@ -1,3 +1,5 @@
+import logging
+
 from SelfAttention import *
 from requirements import *
 from args import *
@@ -44,7 +46,11 @@ class Structure(nn.Module):
 
     def attention_with_ffn_and_ln(self, x):
         x = x.float()
+        log.info("AttentionFFNLn_Kandell_32 模块输入 x", x)
         x = self.AttentionFFNLn_Kandell_32(x)  # [2, 116, 300]
+        log.info("AttentionFFNLn_Kandell_32 模块输出", x)
         x = x.reshape(x.shape[0], -1)
+        log.info("展平后维度 x", x)
         output = self.desc_fc(x)
+        log.info("[结束] 结果维度 output", output)
         return output

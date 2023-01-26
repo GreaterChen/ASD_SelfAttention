@@ -397,3 +397,34 @@ class PrototypeLoss(nn.Module):
             loss = -1 * (y[i][0] * torch.log(belongs_asd) + (1 - y[i][0]) * torch.log(belongs_hc))
             total_loss = total_loss + loss
         return total_loss + ploss, result
+
+
+class Logger:
+    """
+    打印颜色字体
+    display 是否打印
+    ori_var 是否打印原始变量信息
+    """
+
+    def __init__(self, display=True, ori_var=False):
+        self.display = display
+        self.ori = ori_var
+        self.prefix = "-" * 30
+        self.colorpad = {
+            "INFO": ['\033[1;36m', '\033[0m'],
+            "WARNING": ['\033[1;31m', '\033[0m']
+        }
+
+    def separator(self):
+        if self.display:
+            print('\033[5;33m' + self.prefix * 4 + '\033[0m')
+
+    def info(self, msg, var=None):
+        if self.display:
+            print("")
+            print(self.colorpad["WARNING"][0] + self.prefix + msg + self.prefix + self.colorpad["WARNING"][1])
+            print(self.colorpad["INFO"][0] + "----- shape -----" + self.colorpad["INFO"][1])
+            print(var.shape)
+            if self.ori:
+                print(self.colorpad["INFO"][0] + "----- variable -----" + self.colorpad["INFO"][1])
+                print(var)

@@ -53,7 +53,7 @@ class SelfAttention(nn.Module):
         context = context.permute(0, 2, 1, 3).contiguous()  # [2,116,6,50]
         new_size = context.size()[:-2] + (self.dim_v * self.num_attention_heads,)
         context = context.view(*new_size)  # [2,116,300]
-
+        log.info("SelfAttention 模块输出 context", context)
         return context
 
 

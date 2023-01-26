@@ -131,6 +131,8 @@ def Train():
                 y = y.to(torch.float32)  # 这一步似乎很费时间
                 optimizer.zero_grad()
                 with autocast():
+                    log.separator()
+                    log.info("[开始] 模型输入 x", x)
                     output = module(x)
                     loss, pro_result = loss_fn(output, y)
                     # loss = loss_fn(output, y)
