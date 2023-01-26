@@ -401,7 +401,7 @@ class PrototypeLoss(nn.Module):
 
 class Logger:
     """
-    打印颜色字体
+    打印变量信息：原始变量 || 变量形状
     display 是否打印
     ori_var 是否打印原始变量信息
     """
