@@ -423,8 +423,11 @@ class Logger:
         if self.display:
             print("")
             print(self.colorpad["WARNING"][0] + self.prefix + msg + self.prefix + self.colorpad["WARNING"][1])
-            print(self.colorpad["INFO"][0] + "----- shape -----" + self.colorpad["INFO"][1])
-            print(var.shape)
+            try:
+                print(self.colorpad["INFO"][0] + "----- shape -----" + self.colorpad["INFO"][1])
+                print(var.shape)
+            except Exception as e:
+                pass
             if self.ori:
                 print(self.colorpad["INFO"][0] + "----- variable -----" + self.colorpad["INFO"][1])
                 print(var)
