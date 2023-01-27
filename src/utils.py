@@ -1,9 +1,5 @@
-import numpy as np
-import torch
-
 from requirements import *
 from args import *
-from sklearn.decomposition import PCA
 
 eps = 1e-5
 
@@ -34,9 +30,7 @@ class GetData(Dataset):
         for file in tqdm(self.files, desc='Datasets', file=sys.stdout):
             file_path = root_path + "/" + file
             if fisher_r2z:
-                temp = pd.read_pickle(file_path).iloc[:, index].values
-                temp = np.arctanh(temp)  # fisher r_z transform
-                self.data.append(torch.as_tensor(temp))
+                self.data.append(torch.as_tensor(np.arctanh(pd.read_pickle(file_path).iloc[:, index].values)))
             else:
                 temp = pd.read_pickle(file_path).iloc[:, index].values
                 self.data.append(torch.as_tensor(temp))
@@ -137,9 +131,9 @@ class EarlyStopping:
             self.counter += 1
             self.trace_func(f'EarlyStopping counter: {self.counter} out of {self.patience}')
 
-            if self.counter % 10 == 0:
-                lr_c = lr * decay
-                print("lr is changed from", lr, "to", lr_c)
+            # if self.counter % 10 == 0:
+            #     lr_c = lr * decay
+            #     print("lr is changed from", lr, "to", lr_c)
 
             if self.counter >= self.patience:
                 self.early_stop = True
@@ -229,7 +223,7 @@ def SaveArgsInfo():
     value = [dataset_size, batch_size, Head_num, epoch, learn_rate, dropout, ffn_hidden_mult, begin_fold, end_fold,
              L1_en,
              L1_weight_decay, L2_en, L2_weight_decay, fisher_r2z, kendall, kendall_nums, pin_memory, num_workers,
-             pre_train, EarlyStop, EarlyStop_patience, EarlyStop_epoch, Windows_num, Vector_len, data_num]
+             pre_train, EarlyStop, EarlyStop_patience, EarlyStop_epoch, Windows_num, Vector_len]
 
     args.append("dataset_size")
     args.append("batch_size")
@@ -255,7 +249,6 @@ def SaveArgsInfo():
     args.append("EarlyStop_epoch")
     args.append("Windows_num")
     args.append("Vector_len")
-    args.append("data_num")
 
     desc = pd.DataFrame()
     desc["args"] = args
@@ -336,16 +329,19 @@ class PrototypeLoss(nn.Module):
         self.alpha = 1e-3
         self.init_prototypes()
         self.model = model
+        self.softmax = nn.Softmax(dim=1)
 
     def init_prototypes(self):
-        self.asd.append([1, np.array([-0.5, -0.5])])
-        self.hc.append([0, np.array([0.5, 0.5])])
+        self.asd.append([1, np.array([1, 0])])
+        self.hc.append([0, np.array([0, 1])])
 
     def forward(self, output, y):
+        output = self.softmax(output)
+        print(len(self.asd) + len(self.hc))
         self.pro_hc.clear()
         self.pro_asd.clear()
         result = []
-        min_distance = torch.tensor(1e9, dtype=torch.float32, requires_grad=True).cuda()
+        min_distance = torch.tensor(1e9, dtype=torch.float32).cuda()
         min_item = None
         min_index = -1
         ploss = torch.tensor(1e9, dtype=torch.float32, requires_grad=True).cuda()  # 原型损失
@@ -394,9 +390,46 @@ class PrototypeLoss(nn.Module):
             belongs_asd = pro_asd_sum / (pro_asd_sum + pro_hc_sum)
             belongs_hc = pro_hc_sum / (pro_asd_sum + pro_hc_sum)
             result.append([belongs_asd, belongs_hc])
-            loss = -1 * (y[i][0] * torch.log(belongs_asd) + (1 - y[i][0]) * torch.log(belongs_hc))
-            total_loss = total_loss + loss
+            total_loss = total_loss + -1 * (y[i][0] * torch.log(belongs_asd) + (1 - y[i][0]) * torch.log(belongs_hc))
+            # total_loss = total_loss + -1 * torch.log(belongs_asd)
         return total_loss + ploss, result
+
+
+class PositionalEncoding(nn.Module):
+    "Implement the PE function."
+
+    def __init__(self, d_model, dropout, max_len=116):
+        # d_model=1024,dropout=0.1,
+        # max_len=5000代表事先准备好长度为5000的序列的位置编码，其实没必要，
+        # 一般100或者200足够了。
+        super(PositionalEncoding, self).__init__()
+        self.dropout = nn.Dropout(p=dropout)
+
+        # Compute the positional encodings once in log space.
+        pe = torch.zeros(max_len, d_model)
+        # (116,1024)矩阵，保持每个位置的位置编码，一共116个位置，
+        # 每个位置用一个512维度向量来表示其位置编码
+        position = torch.arange(0, max_len).unsqueeze(1)
+        # (116) -> (116,1)
+        div_term = torch.exp(torch.arange(0, d_model, 2) *
+                             -(math.log(torch.tensor(10000.0)) / d_model))
+        # (0,2,…, 4998)一共准备2500个值，供sin, cos调用
+        pe[:, 0::2] = torch.sin(position * div_term)  # 偶数下标的位置
+        pe[:, 1::2] = torch.cos(position * div_term)  # 奇数下标的位置
+        pe = pe.unsqueeze(0)
+        # (116, 1024) -> (1, 116, 1024) 为batch.size留出位置
+        self.register_buffer('pe', pe)
+
+    def forward(self, x):
+        x = x + Variable(self.pe[:, :x.size(1)], requires_grad=False)
+        # 接受1.Embeddings的词嵌入结果x，
+        # 然后把自己的位置编码pe，封装成torch的Variable(不需要梯度)，加上去。
+        # 例如，假设x是(30,10,1024)的一个tensor，
+        # 30是batch.size, 10是该batch的序列长度, 512是每个词的词嵌入向量；
+        # 则该行代码的第二项是(1, min(10, 116), 1024)=(1,10,1024)，
+        # 在具体相加的时候，会扩展(1,10,1024)为(30,10,1024)，
+        # 保证一个batch中的30个序列，都使用（叠加）一样的位置编码。
+        return self.dropout(x)  # 增加一次dropout操作
 
 
 class Logger:

@@ -1,4 +1,6 @@
 from requirements import *
+from args import *
+from utils import *
 
 
 class SelfAttention(nn.Module):
@@ -26,6 +28,10 @@ class SelfAttention(nn.Module):
         self.key_layer = nn.Linear(self.signle_head_size, self.dim_qk * self.num_attention_heads, bias=False)
         self.value_layer = nn.Linear(self.signle_head_size, self.dim_v * self.num_attention_heads, bias=False)
 
+        # self.time_weighting = nn.Parameter(torch.ones(self.num_attention_heads, 116, 116))
+        # self.dropout = nn.Dropout(dropout)
+        # self.time_shift = nn.ZeroPad2d((0, 0, 1, 0))  # TRICK: time-mix
+
     def trans_to_multiple_head(self, x, sign):
         if sign == 'q' or sign == 'k':
             new_size = x.size()[:-1] + (self.num_attention_heads, self.dim_qk)
@@ -36,6 +42,9 @@ class SelfAttention(nn.Module):
 
     def forward(self, x):
         x = x.to(torch.float32)
+
+        # x = torch.cat([self.time_shift(x)[:, :116, :self.dim_qk // 2], x[:, :116, self.dim_qk // 2:]], dim=2)
+
         query = self.query_layer(x)
         key = self.key_layer(x)
         value = self.value_layer(x)
@@ -48,6 +57,8 @@ class SelfAttention(nn.Module):
         attention_scores = attention_scores / torch.tensor(sqrt(self.dim_qk // self.num_attention_heads))
 
         attention_probs = F.softmax(attention_scores, dim=-1)
+        # attention_probs = self.time_weighting[:, :116, :116] * attention_probs
+        # attention_probs = self.dropout(attention_probs)
 
         context = torch.matmul(attention_probs, value_heads)  # [2,6,116,50]
         context = context.permute(0, 2, 1, 3).contiguous()  # [2,116,6,50]
@@ -58,12 +69,12 @@ class SelfAttention(nn.Module):
 
 
 class FFN(nn.Module):
-    '''
+    """
     将输入的最后一个维度--映射到--隐藏层维度（一般为4倍高维），然后再映射到--输出层维度（一般为输入维度）。
     input_size: 输入维度
     hidden_size: 隐藏层维度 (default: input_size * 4)
     output_size: 输出维度 (default: =input_size)
-    '''
+    """
 
     def __init__(self, input_size, hidden_size, output_size):
         super(FFN, self).__init__()

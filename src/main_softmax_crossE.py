@@ -11,7 +11,7 @@ def Train():
 
     all_data = GetData(root_path, label_path, dataset_size)
 
-    kf = KFold(n_splits=5, shuffle=True, random_state=seed)  # 初始化5折交叉验证的工具
+    kf = KFold(n_splits=10, shuffle=True, random_state=seed)  # 初始化5折交叉验证的工具
 
     torch.manual_seed(seed)
     np.random.seed(seed)
@@ -30,6 +30,7 @@ def Train():
     SPE_list_kf = []
     PPV_list_kf = []
     NPV_list_kf = []
+    F1_list_kf = []
 
     best_acc_list = []
     split_range = 0
@@ -52,14 +53,8 @@ def Train():
         scaler = GradScaler()
 
         # 损失函数：交叉熵
-        loss_fn = PrototypeLoss(module).to(device)
-        # loss_fn = nn.CrossEntropyLoss().to(device)
+        loss_fn = nn.CrossEntropyLoss().to(device)
 
-        # L1_loss = Regularization(L1_weight_decay, p=1).to(device)
-
-        # loss_fn = dot_loss().to(device)
-
-        # loss_fn = WeightedFocalLoss(alpha=1.2, gamma=1).to(device)
         # 优化器：SGD
         lr = learn_rate
         if L2_en:
@@ -98,6 +93,7 @@ def Train():
         AUC_list = []
         PPV_list = []
         NPV_list = []
+        F1_list = []
 
         best_acc = 0
 
@@ -129,20 +125,20 @@ def Train():
                 x = x.cuda()
                 y = y.cuda()
                 y = y.to(torch.float32)  # 这一步似乎很费时间
-                optimizer.zero_grad()
+
                 with autocast():
                     log.separator()
                     log.info("[开始] 模型输入 x", x)
                     output = module(x)
-                    loss, pro_result = loss_fn(output, y)
-                    # loss = loss_fn(output, y)
+                    # loss, pro_result = loss_fn(output, y)
+                    loss = loss_fn(output, y)
                 epoch_train_loss += loss.item() * batch_size
+                optimizer.zero_grad()
 
                 scaler.scale(loss).backward()
                 scaler.step(optimizer)
                 scaler.update()
                 # loss.backward()
-                # ploss.backward()
                 # optimizer.step()
                 train_acc = 0
                 for i, res in enumerate(output):
@@ -164,7 +160,7 @@ def Train():
                     y = y.cuda()
                     y = y.to(torch.float32)
                     output = module(x)
-                    loss, pro_result = loss_fn(output, y)
+                    loss = loss_fn(output, y)
                     # loss = loss_fn(output, y)
                     epoch_test_loss += loss.item() * batch_size
                     test_acc = 0
@@ -194,10 +190,15 @@ def Train():
                 NPV = -1
             else:
                 NPV = TN / (TN + FN)  # 负预测率
+            if PPV + SEN == 0:
+                F1 = -1
+            else:
+                F1 = 2*(PPV * SEN)/(PPV + SEN)
             SEN_list.append(SEN)
             SPE_list.append(SPE)
             PPV_list.append(PPV)
             NPV_list.append(NPV)
+            F1_list.append(F1)
 
             test_acc_list.append(ACC)
             test_loss_list.append(float(epoch_test_loss))
@@ -252,6 +253,7 @@ def Train():
         SPE_list_kf.append(SPE_list)
         PPV_list_kf.append(PPV_list)
         NPV_list_kf.append(NPV_list)
+        F1_list_kf.append(F1_list)
 
         K_Fold_res = pd.DataFrame()
         K_Fold_res['训练集损失值'] = train_loss_list_kf[-1]
@@ -262,6 +264,7 @@ def Train():
         K_Fold_res['特异性'] = SPE_list_kf[-1]
         K_Fold_res['正预测率'] = PPV_list_kf[-1]
         K_Fold_res['负预测率'] = NPV_list_kf[-1]
+        K_Fold_res['F1分数'] = F1_list_kf[-1]
         K_Fold_res.to_csv(f"../result/{k + 1}_Fold.csv", encoding='utf_8_sig')
         k += 1
         SaveArgsInfo()
@@ -277,6 +280,7 @@ def Train():
     avg_spe = GetAvg(SPE_list_kf)
     avg_ppv = GetAvg(PPV_list_kf)
     avg_npv = GetAvg(NPV_list_kf)
+    avg_f1 = GetAvg(F1_list_kf)
 
     res = pd.DataFrame()
     res['训练集准确率'] = avg_train_acc
@@ -287,6 +291,7 @@ def Train():
     res['特异性'] = avg_spe
     res['正预测率'] = avg_ppv
     res['负预测率'] = avg_npv
+    res['F1分数'] = avg_f1
 
     res.to_csv("../result/result.csv", encoding='utf_8_sig')
 
@@ -311,6 +316,6 @@ if __name__ == '__main__':
     Train()
     end_time = time.time()
     spend_time = end_time - start_time
-    min = spend_time // 60
+    min = int(spend_time // 60)
     sec = int(spend_time - 60 * min)
     print(f"模型训练总用时:{min}分{sec}秒")

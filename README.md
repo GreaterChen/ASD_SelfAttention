@@ -29,6 +29,8 @@ Judge ASD by self-attention
     5.description/label.csv中的reason： 0代表正常，1代表时间点过少舍去，2代表有缺失值舍去
 
 ### 更新说明
+#### 2023/1/27
+    1.所有Kendall的函数集中在Kendall.py中，其中explain为计算每个特征出现在每个窗口前n个排序结果的次数，结果保存至description/important_roi.csv中
 #### 2023/1/18
     1.优化Kendall特征选择，之前是整个时间序列进行选择，现在是对每个时间窗进行单独排序然后取均值，前1024个特征中有792个没变,准确率没改变==
 #### 2023/1/17

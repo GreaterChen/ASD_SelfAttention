@@ -41,12 +41,14 @@ class Structure(nn.Module):
         self.relu = nn.ReLU()
         self.dropout = nn.Dropout(dropout)
         self.linear = nn.Linear(Head_num, 2)
+        # self.PositionalEncoding = PositionalEncoding(1024, 0.1, 116)
 
     # ffn & layernorm with self-attention
 
     def attention_with_ffn_and_ln(self, x):
         x = x.float()
         log.info("AttentionFFNLn_Kandell_32 模块输入 x", x)
+        # x = self.PositionalEncoding(x)
         x = self.AttentionFFNLn_Kandell_32(x)  # [2, 116, 300]
         log.info("AttentionFFNLn_Kandell_32 模块输出", x)
         x = x.reshape(x.shape[0], -1)
