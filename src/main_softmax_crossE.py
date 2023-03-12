@@ -1,3 +1,5 @@
+import torch.optim
+
 from requirements import *
 from args import *
 from utils import *
@@ -11,7 +13,7 @@ def Train():
 
     all_data = GetData(root_path, label_path, dataset_size)
 
-    kf = KFold(n_splits=10, shuffle=True, random_state=seed)  # 初始化5折交叉验证的工具
+    kf = KFold(n_splits=k_fold, shuffle=True, random_state=seed)  # 初始化k折交叉验证的工具
 
     torch.manual_seed(seed)
     np.random.seed(seed)
@@ -193,7 +195,7 @@ def Train():
             if PPV + SEN == 0:
                 F1 = -1
             else:
-                F1 = 2*(PPV * SEN)/(PPV + SEN)
+                F1 = 2 * (PPV * SEN) / (PPV + SEN)
             SEN_list.append(SEN)
             SPE_list.append(SPE)
             PPV_list.append(PPV)
@@ -265,7 +267,7 @@ def Train():
         K_Fold_res['正预测率'] = PPV_list_kf[-1]
         K_Fold_res['负预测率'] = NPV_list_kf[-1]
         K_Fold_res['F1分数'] = F1_list_kf[-1]
-        K_Fold_res.to_csv(f"../result/{k + 1}_Fold.csv", encoding='utf_8_sig')
+        K_Fold_res.to_csv(f"../result/{k + 1}_Fold.csv", )
         k += 1
         SaveArgsInfo()
 

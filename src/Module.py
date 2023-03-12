@@ -7,4 +7,4 @@ class Module(Structure):
 
     def forward(self, x):
         log.info("Module模块输入 x", x)
-        return self.attention_with_ffn_and_ln(x)
+        return self.CNN(x)

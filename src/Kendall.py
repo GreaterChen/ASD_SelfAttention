@@ -8,12 +8,12 @@ from utils import *
 def Getdata():
     root_path = '../../raw_data/rois_aal_csv'
     files = os.listdir(root_path)
-    if not os.path.exists("../raw_data/rois_aal_pkl_pearson_static_expand"):
-        os.makedirs("../raw_data/rois_aal_pkl_pearson_static_expand")
+    if not os.path.exists("../raw_data/rois_aal_pkl_pearson_d_no_expand"):
+        os.makedirs("../raw_data/rois_aal_pkl_pearson_d_no_expand")
 
     for file in tqdm(files, desc='Datasets', file=sys.stdout):
         file_path = root_path + '/' + file
-        save_path = "../raw_data/test"
+        save_path = "../raw_data/rois_aal_pkl_pearson_d_no_expand"
         res = pd.DataFrame(data_static(file_path))
         res.to_pickle(save_path + '/' + file)
 
@@ -145,7 +145,7 @@ def find_roi(end):
     res['坐标'] = result
     res['出现次数'] = nums
     print(res)
-    res.to_csv("../description/important_roi.csv", index=False)
+    res.to_csv("../description/important_roi.csv", index=False, encoding='utf_8_sig')
 
 
 def explain(end):
@@ -155,27 +155,35 @@ def explain(end):
     :return: None
     """
     count = np.zeros(6670, )
+    rank = np.zeros(6670, )
     path = "../../Kendall_result/"
     files = os.listdir(path)
 
     for file in files:
         data = pd.read_csv(path + file)
-        for i in list(data.iloc[:end, :]['ROI']):
+        for j, i in enumerate(list(data.iloc[:end, :]['ROI'])):
+            print(j, i)
             count[i] += 1
+            rank[i] += j + 1
 
     roi = []
     num = []
+    rankk = []
     result = pd.DataFrame()
     for index, i in enumerate(count):
         if i != 0:
             roi.append(index)
             num.append(i)
+            temp = rank[index] + (116 - count[index]) * 100
+            rankk.append(temp/i)
     result['ROI'] = roi
     result['count'] = num
-    result = result.sort_values(by='count', ascending=False)
-    result.to_csv("../description/important_features_sort.csv", index=False)
-    find_roi(end)
+    result['rank'] = rankk
+    result = result.sort_values(by='rank')
+    # result = result.sort_values(by='count', ascending=False)
+    result.to_csv("../description/important_features_sort.csv", index=False, encoding='utf_8_sig')
+    find_roi(30)
 
 
 if __name__ == '__main__':
-    explain(30)
+    explain(100)

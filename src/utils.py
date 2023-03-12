@@ -1,3 +1,5 @@
+import pandas as pd
+
 from requirements import *
 from args import *
 
@@ -29,7 +31,11 @@ class GetData(Dataset):
 
         for file in tqdm(self.files, desc='Datasets', file=sys.stdout):
             file_path = root_path + "/" + file
-            if fisher_r2z:
+            if static:
+                data = torch.as_tensor(pd.read_pickle(file_path).values)
+                data = data.reshape(1, data.shape[0], data.shape[1])
+                self.data.append(data)
+            elif fisher_r2z:
                 self.data.append(torch.as_tensor(np.arctanh(pd.read_pickle(file_path).iloc[:, index].values)))
             else:
                 temp = pd.read_pickle(file_path).iloc[:, index].values
@@ -172,7 +178,7 @@ class ROC:
             self.best_auc = AUC
         return AUC
 
-    def DrawROC(self):
+    def DrawROC(self, info=''):
         plt.figure()
         plt.plot([0, 1], [0, 1], 'k--')
         plt.plot(self.best_fpr, self.best_tpr, label="AUC={:.3f}".format(self.best_auc))
@@ -180,7 +186,7 @@ class ROC:
         plt.ylabel('TPR')
         plt.title(f'{self.fold}-{self.epoch} ROC curve')
         plt.legend()
-        plt.savefig(f"../result/pic/{self.fold}_roc.png", dpi=500)
+        plt.savefig(f"../result/pic/{self.fold}_roc{info}.png", dpi=500)
         plt.show()
 
 
@@ -193,7 +199,7 @@ def GetAvg(a):
     for j in range(max_len):
         sum = 0
         cnt = 0
-        for i in range(5):
+        for i in range(k_fold):
             if j < len(a[i]):
                 sum += a[i][j]
                 cnt += 1

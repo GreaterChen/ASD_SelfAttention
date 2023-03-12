@@ -1,6 +1,11 @@
+import sys
+
 import pandas as pd
-from sklearn import svm
+from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
+from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier, AdaBoostClassifier
+from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import confusion_matrix, f1_score
+from sklearn.naive_bayes import MultinomialNB
 
 from requirements import *
 from pearson_calculate import *
@@ -17,7 +22,7 @@ def GetStaticData():
         res.to_pickle("../../raw_data/rois_aal_pkl_pearson_static/" + file[:-4] + '.pkl')
 
 
-def SVM():
+def RF():
     root_path = "../../raw_data/rois_aal_pkl_pearson_static/"
     label_path = "../description/label_674.csv"
     files = os.listdir(root_path)
@@ -42,12 +47,12 @@ def SVM():
     auc_list = []
     k = 0
     start_time = time.time()
-    for train_index, test_index in kf.split(X):
+    for train_index, test_index in tqdm(kf.split(X), desc="running", file=sys.stdout):
         k += 1
         x_train, x_test = X[train_index], X[test_index]
         y_train, y_test = y[train_index], y[test_index]
-        predictor = svm.SVC(gamma='scale', C=1.0, decision_function_shape='ovr', kernel='rbf')
-        # 进行训练
+        predictor = LogisticRegression(max_iter=1000, penalty='l2')
+        # 进行训练u
         predictor.fit(x_train, y_train)
         y_pred = predictor.predict(x_test)
         tn, fp, fn, tp = confusion_matrix(y_test, y_pred).ravel()
@@ -73,4 +78,4 @@ def SVM():
 
 
 if __name__ == '__main__':
-    SVM()
+    RF()
