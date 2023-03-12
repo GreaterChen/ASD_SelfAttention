@@ -1,0 +1,289 @@
+\begin{thebibliography}{27}
+\expandafter\ifx\csname natexlab\endcsname\relax\def\natexlab#1{#1}\fi
+\providecommand{\url}[1]{\texttt{#1}}
+\providecommand{\href}[2]{#2}
+\providecommand{\path}[1]{#1}
+\providecommand{\DOIprefix}{doi:}
+\providecommand{\ArXivprefix}{arXiv:}
+\providecommand{\URLprefix}{URL: }
+\providecommand{\Pubmedprefix}{pmid:}
+\providecommand{\doi}[1]{\href{http://dx.doi.org/#1}{\path{#1}}}
+\providecommand{\Pubmed}[1]{\href{pmid:#1}{\path{#1}}}
+\providecommand{\bibinfo}[2]{#2}
+\ifx\xfnm\relax \def\xfnm[#1]{\unskip,\space#1}\fi
+%Type = Article
+\bibitem[{Abraham et~al.(2017)Abraham, Milham, Di~Martino, Craddock, Samaras,
+  Thirion and Varoquaux}]{abraham2017deriving}
+\bibinfo{author}{Abraham, A.}, \bibinfo{author}{Milham, M.P.},
+  \bibinfo{author}{Di~Martino, A.}, \bibinfo{author}{Craddock, R.C.},
+  \bibinfo{author}{Samaras, D.}, \bibinfo{author}{Thirion, B.},
+  \bibinfo{author}{Varoquaux, G.}, \bibinfo{year}{2017}.
+\newblock \bibinfo{title}{Deriving reproducible biomarkers from multi-site
+  resting-state data: An autism-based example}.
+\newblock \bibinfo{journal}{NeuroImage} \bibinfo{volume}{147},
+  \bibinfo{pages}{736--745}.
+%Type = Article
+\bibitem[{Allen et~al.(2014)Allen, Damaraju, Plis, Erhardt, Eichele and
+  Calhoun}]{allen2014tracking}
+\bibinfo{author}{Allen, E.A.}, \bibinfo{author}{Damaraju, E.},
+  \bibinfo{author}{Plis, S.M.}, \bibinfo{author}{Erhardt, E.B.},
+  \bibinfo{author}{Eichele, T.}, \bibinfo{author}{Calhoun, V.D.},
+  \bibinfo{year}{2014}.
+\newblock \bibinfo{title}{Tracking whole-brain connectivity dynamics in the
+  resting state}.
+\newblock \bibinfo{journal}{Cerebral cortex} \bibinfo{volume}{24},
+  \bibinfo{pages}{663--676}.
+%Type = Article
+\bibitem[{Assaf et~al.(2010)Assaf, Jagannathan, Calhoun, Miller, Stevens, Sahl,
+  O'Boyle, Schultz and Pearlson}]{assaf2010abnormal}
+\bibinfo{author}{Assaf, M.}, \bibinfo{author}{Jagannathan, K.},
+  \bibinfo{author}{Calhoun, V.D.}, \bibinfo{author}{Miller, L.},
+  \bibinfo{author}{Stevens, M.C.}, \bibinfo{author}{Sahl, R.},
+  \bibinfo{author}{O'Boyle, J.G.}, \bibinfo{author}{Schultz, R.T.},
+  \bibinfo{author}{Pearlson, G.D.}, \bibinfo{year}{2010}.
+\newblock \bibinfo{title}{Abnormal functional connectivity of default mode
+  sub-networks in autism spectrum disorder patients}.
+\newblock \bibinfo{journal}{Neuroimage} \bibinfo{volume}{53},
+  \bibinfo{pages}{247--256}.
+%Type = Article
+\bibitem[{Calhoun et~al.(2014)Calhoun, Miller, Pearlson and
+  Adal{\i}}]{calhoun2014chronnectome}
+\bibinfo{author}{Calhoun, V.D.}, \bibinfo{author}{Miller, R.},
+  \bibinfo{author}{Pearlson, G.}, \bibinfo{author}{Adal{\i}, T.},
+  \bibinfo{year}{2014}.
+\newblock \bibinfo{title}{The chronnectome: time-varying connectivity networks
+  as the next frontier in fmri data discovery}.
+\newblock \bibinfo{journal}{Neuron} \bibinfo{volume}{84},
+  \bibinfo{pages}{262--274}.
+%Type = Article
+\bibitem[{Craddock et~al.(2013)Craddock, Benhajali, Chu, Chouinard, Evans,
+  Jakab, Khundrakpam, Lewis, Li, Milham et~al.}]{craddock2013neuro}
+\bibinfo{author}{Craddock, C.}, \bibinfo{author}{Benhajali, Y.},
+  \bibinfo{author}{Chu, C.}, \bibinfo{author}{Chouinard, F.},
+  \bibinfo{author}{Evans, A.}, \bibinfo{author}{Jakab, A.},
+  \bibinfo{author}{Khundrakpam, B.S.}, \bibinfo{author}{Lewis, J.D.},
+  \bibinfo{author}{Li, Q.}, \bibinfo{author}{Milham, M.}, et~al.,
+  \bibinfo{year}{2013}.
+\newblock \bibinfo{title}{The neuro bureau preprocessing initiative: open
+  sharing of preprocessed neuroimaging data and derivatives}.
+\newblock \bibinfo{journal}{Frontiers in Neuroinformatics} \bibinfo{volume}{7},
+  \bibinfo{pages}{27}.
+%Type = Inproceedings
+\bibitem[{Deng et~al.(2022)Deng, Hasan, Mahmud, Hasan, Ahmed and
+  Hossain}]{deng2022diagnosing}
+\bibinfo{author}{Deng, J.}, \bibinfo{author}{Hasan, M.R.},
+  \bibinfo{author}{Mahmud, M.}, \bibinfo{author}{Hasan, M.M.},
+  \bibinfo{author}{Ahmed, K.A.}, \bibinfo{author}{Hossain, M.Z.},
+  \bibinfo{year}{2022}.
+\newblock \bibinfo{title}{Diagnosing autism spectrum disorder using ensemble
+  3d-cnn: A preliminary study}, in: \bibinfo{booktitle}{2022 IEEE International
+  Conference on Image Processing (ICIP)}, \bibinfo{organization}{IEEE}. pp.
+  \bibinfo{pages}{3480--3484}.
+%Type = Inproceedings
+\bibitem[{Dvornek et~al.(2017)Dvornek, Ventola, Pelphrey and
+  Duncan}]{dvornek2017identifying}
+\bibinfo{author}{Dvornek, N.C.}, \bibinfo{author}{Ventola, P.},
+  \bibinfo{author}{Pelphrey, K.A.}, \bibinfo{author}{Duncan, J.S.},
+  \bibinfo{year}{2017}.
+\newblock \bibinfo{title}{Identifying autism from resting-state fmri using long
+  short-term memory networks}, in: \bibinfo{booktitle}{Machine Learning in
+  Medical Imaging: 8th International Workshop, MLMI 2017, Held in Conjunction
+  with MICCAI 2017, Quebec City, QC, Canada, September 10, 2017, Proceedings
+  8}, \bibinfo{organization}{Springer}. pp. \bibinfo{pages}{362--370}.
+%Type = Article
+\bibitem[{Fredo et~al.(2018)Fredo, Jahedi, Reiter and
+  M{\"u}ller}]{fredo2018diagnostic}
+\bibinfo{author}{Fredo, A.}, \bibinfo{author}{Jahedi, A.},
+  \bibinfo{author}{Reiter, M.}, \bibinfo{author}{M{\"u}ller, R.A.},
+  \bibinfo{year}{2018}.
+\newblock \bibinfo{title}{Diagnostic classification of autism using
+  resting-state fmri data and conditional random forest}.
+\newblock \bibinfo{journal}{Age} \bibinfo{volume}{12}, \bibinfo{pages}{6--41}.
+%Type = Article
+\bibitem[{Guo et~al.(2017)Guo, Dominick, Minai, Li, Erickson and
+  Lu}]{guo2017diagnosing}
+\bibinfo{author}{Guo, X.}, \bibinfo{author}{Dominick, K.C.},
+  \bibinfo{author}{Minai, A.A.}, \bibinfo{author}{Li, H.},
+  \bibinfo{author}{Erickson, C.A.}, \bibinfo{author}{Lu, L.J.},
+  \bibinfo{year}{2017}.
+\newblock \bibinfo{title}{Diagnosing autism spectrum disorder from brain
+  resting-state functional connectivity patterns using a deep neural network
+  with a novel feature selection method}.
+\newblock \bibinfo{journal}{Frontiers in neuroscience} \bibinfo{volume}{11},
+  \bibinfo{pages}{460}.
+%Type = Article
+\bibitem[{Ismail et~al.(2022)Ismail, Gad and Hashem}]{ismail2022hec}
+\bibinfo{author}{Ismail, E.}, \bibinfo{author}{Gad, W.},
+  \bibinfo{author}{Hashem, M.}, \bibinfo{year}{2022}.
+\newblock \bibinfo{title}{Hec-asd: a hybrid ensemble-based classification model
+  for predicting autism spectrum disorder disease genes}.
+\newblock \bibinfo{journal}{BMC bioinformatics} \bibinfo{volume}{23},
+  \bibinfo{pages}{554}.
+%Type = Article
+\bibitem[{Ju et~al.(2017)Ju, Hu, Li et~al.}]{ju2017early}
+\bibinfo{author}{Ju, R.}, \bibinfo{author}{Hu, C.}, \bibinfo{author}{Li, Q.},
+  et~al., \bibinfo{year}{2017}.
+\newblock \bibinfo{title}{Early diagnosis of alzheimer's disease based on
+  resting-state brain networks and deep learning}.
+\newblock \bibinfo{journal}{IEEE/ACM transactions on computational biology and
+  bioinformatics} \bibinfo{volume}{16}, \bibinfo{pages}{244--257}.
+%Type = Article
+\bibitem[{Kim et~al.(2022)Kim, Jeon, Yu, Choi and Han}]{kim2022interpretable}
+\bibinfo{author}{Kim, J.J.}, \bibinfo{author}{Jeon, Y.}, \bibinfo{author}{Yu,
+  S.}, \bibinfo{author}{Choi, J.}, \bibinfo{author}{Han, S.},
+  \bibinfo{year}{2022}.
+\newblock \bibinfo{title}{Interpretable fusion analytics framework for fmri
+  connectivity: Self-attention mechanism and latent space item-response model}.
+\newblock \bibinfo{journal}{arXiv preprint arXiv:2207.01581} .
+%Type = Article
+\bibitem[{Liang et~al.(2021)Liang, Liu and Zhang}]{liang2021convolutional}
+\bibinfo{author}{Liang, Y.}, \bibinfo{author}{Liu, B.}, \bibinfo{author}{Zhang,
+  H.}, \bibinfo{year}{2021}.
+\newblock \bibinfo{title}{A convolutional neural network combined with
+  prototype learning framework for brain functional network classification of
+  autism spectrum disorder}.
+\newblock \bibinfo{journal}{IEEE Transactions on Neural Systems and
+  Rehabilitation Engineering} \bibinfo{volume}{29},
+  \bibinfo{pages}{2193--2202}.
+%Type = Article
+\bibitem[{Litjens et~al.(2017)Litjens, Kooi, Bejnordi, Setio, Ciompi,
+  Ghafoorian, Van Der~Laak, Van~Ginneken and S{\'a}nchez}]{litjens2017survey}
+\bibinfo{author}{Litjens, G.}, \bibinfo{author}{Kooi, T.},
+  \bibinfo{author}{Bejnordi, B.E.}, \bibinfo{author}{Setio, A.A.A.},
+  \bibinfo{author}{Ciompi, F.}, \bibinfo{author}{Ghafoorian, M.},
+  \bibinfo{author}{Van Der~Laak, J.A.}, \bibinfo{author}{Van~Ginneken, B.},
+  \bibinfo{author}{S{\'a}nchez, C.I.}, \bibinfo{year}{2017}.
+\newblock \bibinfo{title}{A survey on deep learning in medical image analysis}.
+\newblock \bibinfo{journal}{Medical image analysis} \bibinfo{volume}{42},
+  \bibinfo{pages}{60--88}.
+%Type = Article
+\bibitem[{Maenner et~al.(2021)Maenner, Shaw, Bakian, Bilder, Durkin, Esler,
+  Furnier, Hallas, Hall-Lande, Hudson et~al.}]{maenner2021prevalence}
+\bibinfo{author}{Maenner, M.J.}, \bibinfo{author}{Shaw, K.A.},
+  \bibinfo{author}{Bakian, A.V.}, \bibinfo{author}{Bilder, D.A.},
+  \bibinfo{author}{Durkin, M.S.}, \bibinfo{author}{Esler, A.},
+  \bibinfo{author}{Furnier, S.M.}, \bibinfo{author}{Hallas, L.},
+  \bibinfo{author}{Hall-Lande, J.}, \bibinfo{author}{Hudson, A.}, et~al.,
+  \bibinfo{year}{2021}.
+\newblock \bibinfo{title}{Prevalence and characteristics of autism spectrum
+  disorder among children aged 8 years—autism and developmental disabilities
+  monitoring network, 11 sites, united states, 2018}.
+\newblock \bibinfo{journal}{MMWR Surveillance Summaries} \bibinfo{volume}{70},
+  \bibinfo{pages}{1}.
+%Type = Article
+\bibitem[{Monk et~al.(2009)Monk, Peltier, Wiggins, Weng, Carrasco, Risi and
+  Lord}]{monk2009abnormalities}
+\bibinfo{author}{Monk, C.S.}, \bibinfo{author}{Peltier, S.J.},
+  \bibinfo{author}{Wiggins, J.L.}, \bibinfo{author}{Weng, S.J.},
+  \bibinfo{author}{Carrasco, M.}, \bibinfo{author}{Risi, S.},
+  \bibinfo{author}{Lord, C.}, \bibinfo{year}{2009}.
+\newblock \bibinfo{title}{Abnormalities of intrinsic functional connectivity in
+  autism spectrum disorders}.
+\newblock \bibinfo{journal}{Neuroimage} \bibinfo{volume}{47},
+  \bibinfo{pages}{764--772}.
+%Type = Article
+\bibitem[{Rolls et~al.(2015)Rolls, Joliot and
+  Tzourio-Mazoyer}]{rolls2015implementation}
+\bibinfo{author}{Rolls, E.T.}, \bibinfo{author}{Joliot, M.},
+  \bibinfo{author}{Tzourio-Mazoyer, N.}, \bibinfo{year}{2015}.
+\newblock \bibinfo{title}{Implementation of a new parcellation of the
+  orbitofrontal cortex in the automated anatomical labeling atlas}.
+\newblock \bibinfo{journal}{Neuroimage} \bibinfo{volume}{122},
+  \bibinfo{pages}{1--5}.
+%Type = Article
+\bibitem[{Savva et~al.(2019)Savva, Mitsis and
+  Matsopoulos}]{savva2019assessment}
+\bibinfo{author}{Savva, A.D.}, \bibinfo{author}{Mitsis, G.D.},
+  \bibinfo{author}{Matsopoulos, G.K.}, \bibinfo{year}{2019}.
+\newblock \bibinfo{title}{Assessment of dynamic functional connectivity in
+  resting-state fmri using the sliding window technique}.
+\newblock \bibinfo{journal}{Brain and behavior} \bibinfo{volume}{9},
+  \bibinfo{pages}{e01255}.
+%Type = Article
+\bibitem[{Song et~al.(2019)Song, Epalle and Lu}]{song2019characterizing}
+\bibinfo{author}{Song, Y.}, \bibinfo{author}{Epalle, T.M.},
+  \bibinfo{author}{Lu, H.}, \bibinfo{year}{2019}.
+\newblock \bibinfo{title}{Characterizing and predicting autism spectrum
+  disorder by performing resting-state functional network community pattern
+  analysis}.
+\newblock \bibinfo{journal}{Frontiers in human neuroscience}
+  \bibinfo{volume}{13}, \bibinfo{pages}{203}.
+%Type = Article
+\bibitem[{Vaswani et~al.(2017)Vaswani, Shazeer, Parmar, Uszkoreit, Jones,
+  Gomez, Kaiser and Polosukhin}]{vaswani2017attention}
+\bibinfo{author}{Vaswani, A.}, \bibinfo{author}{Shazeer, N.},
+  \bibinfo{author}{Parmar, N.}, \bibinfo{author}{Uszkoreit, J.},
+  \bibinfo{author}{Jones, L.}, \bibinfo{author}{Gomez, A.N.},
+  \bibinfo{author}{Kaiser, {\L}.}, \bibinfo{author}{Polosukhin, I.},
+  \bibinfo{year}{2017}.
+\newblock \bibinfo{title}{Attention is all you need}.
+\newblock \bibinfo{journal}{Advances in neural information processing systems}
+  \bibinfo{volume}{30}.
+%Type = Article
+\bibitem[{Wang et~al.(2021)Wang, Peng, Shang and Gao}]{wang2021autistic}
+\bibinfo{author}{Wang, Z.}, \bibinfo{author}{Peng, D.}, \bibinfo{author}{Shang,
+  Y.}, \bibinfo{author}{Gao, J.}, \bibinfo{year}{2021}.
+\newblock \bibinfo{title}{Autistic spectrum disorder detection and structural
+  biomarker identification using self-attention model and individual-level
+  morphological covariance brain networks}.
+\newblock \bibinfo{journal}{Frontiers in Neuroscience} , \bibinfo{pages}{1268}.
+%Type = Article
+\bibitem[{Woodward and Cascio(2015)}]{woodward2015resting}
+\bibinfo{author}{Woodward, N.D.}, \bibinfo{author}{Cascio, C.J.},
+  \bibinfo{year}{2015}.
+\newblock \bibinfo{title}{Resting-state functional connectivity in psychiatric
+  disorders}.
+\newblock \bibinfo{journal}{JAMA psychiatry} \bibinfo{volume}{72},
+  \bibinfo{pages}{743--744}.
+%Type = Article
+\bibitem[{Xiao et~al.(2018)Xiao, Wang, Jia and Wu}]{xiao2018sae}
+\bibinfo{author}{Xiao, Z.}, \bibinfo{author}{Wang, C.}, \bibinfo{author}{Jia,
+  N.}, \bibinfo{author}{Wu, J.}, \bibinfo{year}{2018}.
+\newblock \bibinfo{title}{Sae-based classification of school-aged children with
+  autism spectrum disorders using functional magnetic resonance imaging}.
+\newblock \bibinfo{journal}{Multimedia Tools and Applications}
+  \bibinfo{volume}{77}, \bibinfo{pages}{22809--22820}.
+%Type = Article
+\bibitem[{Xu et~al.(2020)Xu, Wang, Xu, Li, Chen, Chen, Gao, Wang and
+  Hu}]{xu2020specific}
+\bibinfo{author}{Xu, J.}, \bibinfo{author}{Wang, C.}, \bibinfo{author}{Xu, Z.},
+  \bibinfo{author}{Li, T.}, \bibinfo{author}{Chen, F.}, \bibinfo{author}{Chen,
+  K.}, \bibinfo{author}{Gao, J.}, \bibinfo{author}{Wang, J.},
+  \bibinfo{author}{Hu, Q.}, \bibinfo{year}{2020}.
+\newblock \bibinfo{title}{Specific functional connectivity patterns of middle
+  temporal gyrus subregions in children and adults with autism spectrum
+  disorder}.
+\newblock \bibinfo{journal}{Autism Research} \bibinfo{volume}{13},
+  \bibinfo{pages}{410--422}.
+%Type = Article
+\bibitem[{Xu et~al.(2021)Xu, Sun, Xie, Yu, Li and Wang}]{xu2021identification}
+\bibinfo{author}{Xu, L.}, \bibinfo{author}{Sun, Z.}, \bibinfo{author}{Xie, J.},
+  \bibinfo{author}{Yu, J.}, \bibinfo{author}{Li, J.}, \bibinfo{author}{Wang,
+  J.}, \bibinfo{year}{2021}.
+\newblock \bibinfo{title}{Identification of autism spectrum disorder based on
+  short-term spontaneous hemodynamic fluctuations using deep learning in a
+  multi-layer neural network}.
+\newblock \bibinfo{journal}{Clinical Neurophysiology} \bibinfo{volume}{132},
+  \bibinfo{pages}{457--468}.
+%Type = Article
+\bibitem[{Zeng et~al.(2012)Zeng, Shen, Liu, Wang, Li, Fang, Zhou, Li and
+  Hu}]{zeng2012identifying}
+\bibinfo{author}{Zeng, L.L.}, \bibinfo{author}{Shen, H.}, \bibinfo{author}{Liu,
+  L.}, \bibinfo{author}{Wang, L.}, \bibinfo{author}{Li, B.},
+  \bibinfo{author}{Fang, P.}, \bibinfo{author}{Zhou, Z.}, \bibinfo{author}{Li,
+  Y.}, \bibinfo{author}{Hu, D.}, \bibinfo{year}{2012}.
+\newblock \bibinfo{title}{Identifying major depression using whole-brain
+  functional connectivity: a multivariate pattern analysis}.
+\newblock \bibinfo{journal}{Brain} \bibinfo{volume}{135},
+  \bibinfo{pages}{1498--1507}.
+%Type = Article
+\bibitem[{Zhang et~al.(2022)Zhang, Jie, Wang, Zhou and Yang}]{zhang2022self}
+\bibinfo{author}{Zhang, Z.}, \bibinfo{author}{Jie, B.}, \bibinfo{author}{Wang,
+  Z.}, \bibinfo{author}{Zhou, J.}, \bibinfo{author}{Yang, Y.},
+  \bibinfo{year}{2022}.
+\newblock \bibinfo{title}{Self-attention based high order sequence feature
+  reconstruction of dynamic functional connectivity networks with rs-fmri for
+  brain disease classification}.
+\newblock \bibinfo{journal}{arXiv preprint arXiv:2211.11750} .
+
+\end{thebibliography}
