@@ -1,0 +1,903 @@
+{
+    "categories": [
+        {
+            "name": "A"
+        }
+    ],
+    "links": [
+        {
+            "source": 30,
+            "target": 87
+        },
+        {
+            "source": 9,
+            "target": 67
+        },
+        {
+            "source": 22,
+            "target": 27
+        },
+        {
+            "source": 57,
+            "target": 77
+        },
+        {
+            "source": 80,
+            "target": 77
+        },
+        {
+            "source": 8,
+            "target": 9
+        },
+        {
+            "source": 23,
+            "target": 27
+        },
+        {
+            "source": 23,
+            "target": 87
+        },
+        {
+            "source": 77,
+            "target": 81
+        },
+        {
+            "source": 22,
+            "target": 87
+        },
+        {
+            "source": 8,
+            "target": 26
+        },
+        {
+            "source": 17,
+            "target": 77
+        },
+        {
+            "source": 9,
+            "target": 87
+        },
+        {
+            "source": 26,
+            "target": 84
+        },
+        {
+            "source": 67,
+            "target": 87
+        },
+        {
+            "source": 35,
+            "target": 61
+        },
+        {
+            "source": 8,
+            "target": 87
+        },
+        {
+            "source": 80,
+            "target": 91
+        },
+        {
+            "source": 60,
+            "target": 35
+        },
+        {
+            "source": 66,
+            "target": 9
+        }
+    ],
+    "nodes": [
+        {
+            "category": 0,
+            "id": 0,
+            "name": "PreCG.L",
+            "symbolSize": 10.0,
+            "value": 1
+        },
+        {
+            "category": 0,
+            "id": 1,
+            "name": "PreCG.R",
+            "symbolSize": 10.0,
+            "value": 1
+        },
+        {
+            "category": 0,
+            "id": 2,
+            "name": "SFGdor.L",
+            "symbolSize": 10.0,
+            "value": 1
+        },
+        {
+            "category": 0,
+            "id": 3,
+            "name": "SFGdor.R",
+            "symbolSize": 10.0,
+            "value": 1
+        },
+        {
+            "category": 0,
+            "id": 4,
+            "name": "ORBsup.L",
+            "symbolSize": 10.0,
+            "value": 1
+        },
+        {
+            "category": 0,
+            "id": 5,
+            "name": "ORBsup.R",
+            "symbolSize": 10.0,
+            "value": 1
+        },
+        {
+            "category": 0,
+            "id": 6,
+            "name": "MFG.L",
+            "symbolSize": 10.0,
+            "value": 1
+        },
+        {
+            "category": 0,
+            "id": 7,
+            "name": "MFG.R",
+            "symbolSize": 10.0,
+            "value": 1
+        },
+        {
+            "category": 0,
+            "id": 8,
+            "name": "ORBmid.L",
+            "symbolSize": 25.0,
+            "value": 1
+        },
+        {
+            "category": 0,
+            "id": 9,
+            "name": "ORBmid.R",
+            "symbolSize": 30.0,
+            "value": 1
+        },
+        {
+            "category": 0,
+            "id": 10,
+            "name": "IFGoperc.L",
+            "symbolSize": 10.0,
+            "value": 1
+        },
+        {
+            "category": 0,
+            "id": 11,
+            "name": "IFGoperc.R",
+            "symbolSize": 10.0,
+            "value": 1
+        },
+        {
+            "category": 0,
+            "id": 12,
+            "name": "IFGtriang.L",
+            "symbolSize": 10.0,
+            "value": 1
+        },
+        {
+            "category": 0,
+            "id": 13,
+            "name": "IFGtriang.R",
+            "symbolSize": 10.0,
+            "value": 1
+        },
+        {
+            "category": 0,
+            "id": 14,
+            "name": "ORBinf.L",
+            "symbolSize": 10.0,
+            "value": 1
+        },
+        {
+            "category": 0,
+            "id": 15,
+            "name": "ORBinf.R",
+            "symbolSize": 10.0,
+            "value": 1
+        },
+        {
+            "category": 0,
+            "id": 16,
+            "name": "ROL.L",
+            "symbolSize": 10.0,
+            "value": 1
+        },
+        {
+            "category": 0,
+            "id": 17,
+            "name": "ROL.R",
+            "symbolSize": 15.0,
+            "value": 1
+        },
+        {
+            "category": 0,
+            "id": 18,
+            "name": "SMA.L",
+            "symbolSize": 10.0,
+            "value": 1
+        },
+        {
+            "category": 0,
+            "id": 19,
+            "name": "SMA.R",
+            "symbolSize": 10.0,
+            "value": 1
+        },
+        {
+            "category": 0,
+            "id": 20,
+            "name": "OLF.L",
+            "symbolSize": 10.0,
+            "value": 1
+        },
+        {
+            "category": 0,
+            "id": 21,
+            "name": "OLF.R",
+            "symbolSize": 10.0,
+            "value": 1
+        },
+        {
+            "category": 0,
+            "id": 22,
+            "name": "SFGmed.L",
+            "symbolSize": 20.0,
+            "value": 1
+        },
+        {
+            "category": 0,
+            "id": 23,
+            "name": "SFGmed.R",
+            "symbolSize": 20.0,
+            "value": 1
+        },
+        {
+            "category": 0,
+            "id": 24,
+            "name": "ORBsupmed.L",
+            "symbolSize": 10.0,
+            "value": 1
+        },
+        {
+            "category": 0,
+            "id": 25,
+            "name": "ORBsupmed.R",
+            "symbolSize": 10.0,
+            "value": 1
+        },
+        {
+            "category": 0,
+            "id": 26,
+            "name": "REC.L",
+            "symbolSize": 20.0,
+            "value": 1
+        },
+        {
+            "category": 0,
+            "id": 27,
+            "name": "REC.R",
+            "symbolSize": 20.0,
+            "value": 1
+        },
+        {
+            "category": 0,
+            "id": 28,
+            "name": "INS.L",
+            "symbolSize": 10.0,
+            "value": 1
+        },
+        {
+            "category": 0,
+            "id": 29,
+            "name": "INS.R",
+            "symbolSize": 10.0,
+            "value": 1
+        },
+        {
+            "category": 0,
+            "id": 30,
+            "name": "ACG.L",
+            "symbolSize": 15.0,
+            "value": 1
+        },
+        {
+            "category": 0,
+            "id": 31,
+            "name": "ACG.R",
+            "symbolSize": 10.0,
+            "value": 1
+        },
+        {
+            "category": 0,
+            "id": 32,
+            "name": "DCG.L",
+            "symbolSize": 10.0,
+            "value": 1
+        },
+        {
+            "category": 0,
+            "id": 33,
+            "name": "DCG.R",
+            "symbolSize": 10.0,
+            "value": 1
+        },
+        {
+            "category": 0,
+            "id": 34,
+            "name": "PCG.L",
+            "symbolSize": 10.0,
+            "value": 1
+        },
+        {
+            "category": 0,
+            "id": 35,
+            "name": "PCG.R",
+            "symbolSize": 20.0,
+            "value": 1
+        },
+        {
+            "category": 0,
+            "id": 36,
+            "name": "HIP.L",
+            "symbolSize": 10.0,
+            "value": 1
+        },
+        {
+            "category": 0,
+            "id": 37,
+            "name": "HIP.R",
+            "symbolSize": 10.0,
+            "value": 1
+        },
+        {
+            "category": 0,
+            "id": 38,
+            "name": "PHG.L",
+            "symbolSize": 10.0,
+            "value": 1
+        },
+        {
+            "category": 0,
+            "id": 39,
+            "name": "PHG.R",
+            "symbolSize": 10.0,
+            "value": 1
+        },
+        {
+            "category": 0,
+            "id": 40,
+            "name": "AMYG.L",
+            "symbolSize": 10.0,
+            "value": 1
+        },
+        {
+            "category": 0,
+            "id": 41,
+            "name": "AMYG.R",
+            "symbolSize": 10.0,
+            "value": 1
+        },
+        {
+            "category": 0,
+            "id": 42,
+            "name": "CAL.L",
+            "symbolSize": 10.0,
+            "value": 1
+        },
+        {
+            "category": 0,
+            "id": 43,
+            "name": "CAL.R",
+            "symbolSize": 10.0,
+            "value": 1
+        },
+        {
+            "category": 0,
+            "id": 44,
+            "name": "CUN.L",
+            "symbolSize": 10.0,
+            "value": 1
+        },
+        {
+            "category": 0,
+            "id": 45,
+            "name": "CUN.R",
+            "symbolSize": 10.0,
+            "value": 1
+        },
+        {
+            "category": 0,
+            "id": 46,
+            "name": "LING.L",
+            "symbolSize": 10.0,
+            "value": 1
+        },
+        {
+            "category": 0,
+            "id": 47,
+            "name": "LING.R",
+            "symbolSize": 10.0,
+            "value": 1
+        },
+        {
+            "category": 0,
+            "id": 48,
+            "name": "SOG.L",
+            "symbolSize": 10.0,
+            "value": 1
+        },
+        {
+            "category": 0,
+            "id": 49,
+            "name": "SOG.R",
+            "symbolSize": 10.0,
+            "value": 1
+        },
+        {
+            "category": 0,
+            "id": 50,
+            "name": "MOG.L",
+            "symbolSize": 10.0,
+            "value": 1
+        },
+        {
+            "category": 0,
+            "id": 51,
+            "name": "MOG.R",
+            "symbolSize": 10.0,
+            "value": 1
+        },
+        {
+            "category": 0,
+            "id": 52,
+            "name": "IOG.L",
+            "symbolSize": 10.0,
+            "value": 1
+        },
+        {
+            "category": 0,
+            "id": 53,
+            "name": "IOG.R",
+            "symbolSize": 10.0,
+            "value": 1
+        },
+        {
+            "category": 0,
+            "id": 54,
+            "name": "FFG.L",
+            "symbolSize": 10.0,
+            "value": 1
+        },
+        {
+            "category": 0,
+            "id": 55,
+            "name": "FFG.R",
+            "symbolSize": 10.0,
+            "value": 1
+        },
+        {
+            "category": 0,
+            "id": 56,
+            "name": "PoCG.L",
+            "symbolSize": 10.0,
+            "value": 1
+        },
+        {
+            "category": 0,
+            "id": 57,
+            "name": "PoCG.R",
+            "symbolSize": 15.0,
+            "value": 1
+        },
+        {
+            "category": 0,
+            "id": 58,
+            "name": "SPG.L",
+            "symbolSize": 10.0,
+            "value": 1
+        },
+        {
+            "category": 0,
+            "id": 59,
+            "name": "SPG.R",
+            "symbolSize": 10.0,
+            "value": 1
+        },
+        {
+            "category": 0,
+            "id": 60,
+            "name": "IPL.L",
+            "symbolSize": 15.0,
+            "value": 1
+        },
+        {
+            "category": 0,
+            "id": 61,
+            "name": "IPL.R",
+            "symbolSize": 15.0,
+            "value": 1
+        },
+        {
+            "category": 0,
+            "id": 62,
+            "name": "SMG.L",
+            "symbolSize": 10.0,
+            "value": 1
+        },
+        {
+            "category": 0,
+            "id": 63,
+            "name": "SMG.R",
+            "symbolSize": 10.0,
+            "value": 1
+        },
+        {
+            "category": 0,
+            "id": 64,
+            "name": "ANG.L",
+            "symbolSize": 10.0,
+            "value": 1
+        },
+        {
+            "category": 0,
+            "id": 65,
+            "name": "ANG.R",
+            "symbolSize": 10.0,
+            "value": 1
+        },
+        {
+            "category": 0,
+            "id": 66,
+            "name": "PCUN.L",
+            "symbolSize": 15.0,
+            "value": 1
+        },
+        {
+            "category": 0,
+            "id": 67,
+            "name": "PCUN.R",
+            "symbolSize": 20.0,
+            "value": 1
+        },
+        {
+            "category": 0,
+            "id": 68,
+            "name": "PCL.L",
+            "symbolSize": 10.0,
+            "value": 1
+        },
+        {
+            "category": 0,
+            "id": 69,
+            "name": "PCL.R",
+            "symbolSize": 10.0,
+            "value": 1
+        },
+        {
+            "category": 0,
+            "id": 70,
+            "name": "CAU.L",
+            "symbolSize": 10.0,
+            "value": 1
+        },
+        {
+            "category": 0,
+            "id": 71,
+            "name": "CAU.R",
+            "symbolSize": 10.0,
+            "value": 1
+        },
+        {
+            "category": 0,
+            "id": 72,
+            "name": "PUT.L",
+            "symbolSize": 10.0,
+            "value": 1
+        },
+        {
+            "category": 0,
+            "id": 73,
+            "name": "PUT.R",
+            "symbolSize": 10.0,
+            "value": 1
+        },
+        {
+            "category": 0,
+            "id": 74,
+            "name": "PAL.L",
+            "symbolSize": 10.0,
+            "value": 1
+        },
+        {
+            "category": 0,
+            "id": 75,
+            "name": "PAL.R",
+            "symbolSize": 10.0,
+            "value": 1
+        },
+        {
+            "category": 0,
+            "id": 76,
+            "name": "THA.L",
+            "symbolSize": 10.0,
+            "value": 1
+        },
+        {
+            "category": 0,
+            "id": 77,
+            "name": "THA.R",
+            "symbolSize": 30.0,
+            "value": 1
+        },
+        {
+            "category": 0,
+            "id": 78,
+            "name": "HES.L",
+            "symbolSize": 10.0,
+            "value": 1
+        },
+        {
+            "category": 0,
+            "id": 79,
+            "name": "HES.R",
+            "symbolSize": 10.0,
+            "value": 1
+        },
+        {
+            "category": 0,
+            "id": 80,
+            "name": "STG.L",
+            "symbolSize": 20.0,
+            "value": 1
+        },
+        {
+            "category": 0,
+            "id": 81,
+            "name": "STG.R",
+            "symbolSize": 15.0,
+            "value": 1
+        },
+        {
+            "category": 0,
+            "id": 82,
+            "name": "TPOsup.L",
+            "symbolSize": 10.0,
+            "value": 1
+        },
+        {
+            "category": 0,
+            "id": 83,
+            "name": "TPOsup.R",
+            "symbolSize": 10.0,
+            "value": 1
+        },
+        {
+            "category": 0,
+            "id": 84,
+            "name": "MTG.L",
+            "symbolSize": 15.0,
+            "value": 1
+        },
+        {
+            "category": 0,
+            "id": 85,
+            "name": "MTG.R",
+            "symbolSize": 10.0,
+            "value": 1
+        },
+        {
+            "category": 0,
+            "id": 86,
+            "name": "TPOmid.L",
+            "symbolSize": 10.0,
+            "value": 1
+        },
+        {
+            "category": 0,
+            "id": 87,
+            "name": "TPOmid.R",
+            "symbolSize": 40.0,
+            "value": 1
+        },
+        {
+            "category": 0,
+            "id": 88,
+            "name": "ITG.L",
+            "symbolSize": 10.0,
+            "value": 1
+        },
+        {
+            "category": 0,
+            "id": 89,
+            "name": "ITG.R",
+            "symbolSize": 10.0,
+            "value": 1
+        },
+        {
+            "category": 0,
+            "id": 90,
+            "name": "Cerebelum_Crus1_L",
+            "symbolSize": 10.0,
+            "value": 1
+        },
+        {
+            "category": 0,
+            "id": 91,
+            "name": "Cerebelum_Crus1_R",
+            "symbolSize": 15.0,
+            "value": 1
+        },
+        {
+            "category": 0,
+            "id": 92,
+            "name": "Cerebelum_Crus2_L",
+            "symbolSize": 10.0,
+            "value": 1
+        },
+        {
+            "category": 0,
+            "id": 93,
+            "name": "Cerebelum_Crus2_R",
+            "symbolSize": 10.0,
+            "value": 1
+        },
+        {
+            "category": 0,
+            "id": 94,
+            "name": "Cerebelum_3_L",
+            "symbolSize": 10.0,
+            "value": 1
+        },
+        {
+            "category": 0,
+            "id": 95,
+            "name": "Cerebelum_3_R",
+            "symbolSize": 10.0,
+            "value": 1
+        },
+        {
+            "category": 0,
+            "id": 96,
+            "name": "Cerebelum_4_5_L",
+            "symbolSize": 10.0,
+            "value": 1
+        },
+        {
+            "category": 0,
+            "id": 97,
+            "name": "Cerebelum_4_5_R",
+            "symbolSize": 10.0,
+            "value": 1
+        },
+        {
+            "category": 0,
+            "id": 98,
+            "name": "Cerebelum_6_L",
+            "symbolSize": 10.0,
+            "value": 1
+        },
+        {
+            "category": 0,
+            "id": 99,
+            "name": "Cerebelum_6_R",
+            "symbolSize": 10.0,
+            "value": 1
+        },
+        {
+            "category": 0,
+            "id": 100,
+            "name": "Cerebelum_7b_L",
+            "symbolSize": 10.0,
+            "value": 1
+        },
+        {
+            "category": 0,
+            "id": 101,
+            "name": "Cerebelum_7b_R",
+            "symbolSize": 10.0,
+            "value": 1
+        },
+        {
+            "category": 0,
+            "id": 102,
+            "name": "Cerebelum_8_L",
+            "symbolSize": 10.0,
+            "value": 1
+        },
+        {
+            "category": 0,
+            "id": 103,
+            "name": "Cerebelum_8R",
+            "symbolSize": 10.0,
+            "value": 1
+        },
+        {
+            "category": 0,
+            "id": 104,
+            "name": "Cerebelum_9_L",
+            "symbolSize": 10.0,
+            "value": 1
+        },
+        {
+            "category": 0,
+            "id": 105,
+            "name": "Cerebelum_9_R",
+            "symbolSize": 10.0,
+            "value": 1
+        },
+        {
+            "category": 0,
+            "id": 106,
+            "name": "Cerebelum_10_L",
+            "symbolSize": 10.0,
+            "value": 1
+        },
+        {
+            "category": 0,
+            "id": 107,
+            "name": "Cerebelum_10_R",
+            "symbolSize": 10.0,
+            "value": 1
+        },
+        {
+            "category": 0,
+            "id": 108,
+            "name": "Vermis_1_2",
+            "symbolSize": 10.0,
+            "value": 1
+        },
+        {
+            "category": 0,
+            "id": 109,
+            "name": "Vermis_3",
+            "symbolSize": 10.0,
+            "value": 1
+        },
+        {
+            "category": 0,
+            "id": 110,
+            "name": "Vermis_4_5",
+            "symbolSize": 10.0,
+            "value": 1
+        },
+        {
+            "category": 0,
+            "id": 111,
+            "name": "Vermis_6",
+            "symbolSize": 10.0,
+            "value": 1
+        },
+        {
+            "category": 0,
+            "id": 112,
+            "name": "Vermis_7",
+            "symbolSize": 10.0,
+            "value": 1
+        },
+        {
+            "category": 0,
+            "id": 113,
+            "name": "Vermis_8",
+            "symbolSize": 10.0,
+            "value": 1
+        },
+        {
+            "category": 0,
+            "id": 114,
+            "name": "Vermis_9",
+            "symbolSize": 10.0,
+            "value": 1
+        },
+        {
+            "category": 0,
+            "id": 115,
+            "name": "Vermis_10",
+            "symbolSize": 10.0,
+            "value": 1
+        }
+    ]
+}

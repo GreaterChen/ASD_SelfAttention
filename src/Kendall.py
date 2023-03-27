@@ -1,11 +1,14 @@
+import sys
+
 import pandas as pd
 
 from pearson_calculate import init, data_static
-from requirements import *
 from utils import *
+from requirements import *
 
 
 def Getdata():
+
     root_path = '../../raw_data/rois_aal_csv'
     files = os.listdir(root_path)
     if not os.path.exists("../raw_data/rois_aal_pkl_pearson_d_no_expand"):
@@ -19,13 +22,14 @@ def Getdata():
 
 
 def calculate_kendall():
-    if not os.path.exists("../Kendall_result"):
-        os.makedirs("../Kendall_result")
+    if not os.path.exists("../Kendall_result_cc200"):
+        os.makedirs("../Kendall_result_cc200")
 
-    root_path = "../../raw_data/rois_aal_pkl_pearson/"
+    root_path = "/root/autodl-tmp/cc200_extend_train/"
+    # root_path = r"D:\study\ASD_others\raw_data\cc200_extend_train/"
     files = os.listdir(root_path)
     files.sort()
-    label_temp = pd.read_csv("../description/label_674.csv")
+    label_temp = pd.read_csv("../description/label_671.csv")
 
     if not CheckOrder(files, label_temp):
         print("error")
@@ -34,6 +38,8 @@ def calculate_kendall():
 
     m = sum(label_temp)  # 患病人数
     n = len(label_temp) - m  # 未患病人数
+
+    print(m,n)
 
     files_asd = []
     files_hc = []
@@ -57,7 +63,7 @@ def calculate_kendall():
 
     all_asd_data_116 = []
     all_hc_data_116 = []
-    for j in range(116):
+    for j in tqdm(range(116), desc="running", file=sys.stdout):
         one_asd_data_116 = []
         one_hc_data_116 = []
         for i in range(len(all_asd_data)):
@@ -73,8 +79,8 @@ def calculate_kendall():
         all_hc_data = all_hc_data_116[j]
 
         tau = pd.DataFrame(columns=['ROI', 'tau'])
-        nc = np.zeros((6670,), dtype=int)
-        nd = np.zeros((6670,), dtype=int)
+        nc = np.zeros((19900,), dtype=int)
+        nd = np.zeros((19900,), dtype=int)
 
         for i in range(len(all_asd_data)):
             ref = list(all_asd_data.iloc[i, :])
@@ -83,33 +89,33 @@ def calculate_kendall():
             nc += total_true
             nd += len(all_hc_data) - total_true
 
-        for i in range(6670):
+        for i in range(19900):
             tau_t = (nc[i] - nd[i]) / (m * n)
             tau = pd.DataFrame(np.insert(tau.values, len(tau.index), values=[int(i), abs(tau_t)], axis=0))
 
         tau.columns = ['ROI', 'tau']
         tau = tau.sort_values(by='tau', ascending=False)
         tau = tau.reset_index(drop=True)
-        tau.to_csv(f"../Kendall_result/kendall_sort_{j}.csv", index=False)
+        tau.to_csv(f"../Kendall_result_cc200/kendall_sort_{j}.csv", index=False)
 
 
-def Sort_all_116_windows():
-    path = "../Kendall_result/"
+def Sort_all_windows():
+    path = "../Kendall_result_cc200/"
     files = os.listdir(path)
-    avg = np.zeros((6670,))
+    avg = np.zeros((19900,))
     for file in tqdm(files, desc="running", file=sys.stdout):
         file_path = path + file
         data = pd.read_csv(file_path)
-        for i in range(6670):
+        for i in range(19900):
             avg[data['ROI'][i]] += data['tau'][i]
 
     avg = avg / len(files)
     result = pd.DataFrame()
-    result['ROI'] = range(6670)
+    result['ROI'] = range(19900)
     result['tau'] = avg
     result = result.sort_values(by='tau', ascending=False)
     result = result.reset_index(drop=True)
-    result.to_csv("../description/Kendall_sort_all.csv")
+    result.to_csv("../description/Kendall_sort_cc200.csv")
 
 
 def find_roi(end):
@@ -175,7 +181,7 @@ def explain(end):
             roi.append(index)
             num.append(i)
             temp = rank[index] + (116 - count[index]) * 100
-            rankk.append(temp/i)
+            rankk.append(temp / i)
     result['ROI'] = roi
     result['count'] = num
     result['rank'] = rankk
@@ -186,4 +192,4 @@ def explain(end):
 
 
 if __name__ == '__main__':
-    explain(100)
+    Sort_all_windows()

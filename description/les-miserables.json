@@ -1,0 +1,54 @@
+{
+    "nodes": [
+      {
+        "id": "0",
+        "name": "Myriel",
+        "symbolSize": 19.12381,
+        "value": 28.685715,
+        "category": 0
+      },
+      {
+        "id": "1",
+        "name": "Napoleon",
+        "symbolSize": 26.66666665,
+        "value": 37,
+        "category": 0
+      },
+
+    ],
+    "links": [
+      {
+        "source": "1",
+        "target": "0"
+      }
+    ],
+    "categories": [
+      {
+        "name": "A"
+      },
+      {
+        "name": "B"
+      },
+      {
+        "name": "C"
+      },
+      {
+        "name": "D"
+      },
+      {
+        "name": "E"
+      },
+      {
+        "name": "F"
+      },
+      {
+        "name": "G"
+      },
+      {
+        "name": "H"
+      },
+      {
+        "name": "I"
+      }
+    ]
+  }

@@ -1,3 +1,5 @@
+import torch
+
 from requirements import *
 from args import *
 from utils import *
@@ -9,7 +11,7 @@ def Train():
     global Y_train, Y_pred, epoch_i, auc_list, best_acc, best_acc_list
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-    all_data = GetData(root_path, label_path, dataset_size)
+    all_data = GetData(cc200_path, cc200_label, dataset_size)
 
     for institution in institutions:
         test_index = []
@@ -39,6 +41,8 @@ def Train():
         NPV_list_kf = []
         F1_list_kf = []
         AUC_list_kf = []
+        FPR_list_kf = []
+        TPR_list_kf = []
 
         best_acc_list = []
         split_range = 0
@@ -97,6 +101,8 @@ def Train():
             SEN_list = []
             SPE_list = []
             AUC_list = []
+            FPR_list = []
+            TPR_list = []
             PPV_list = []
             NPV_list = []
             F1_list = []
@@ -186,20 +192,12 @@ def Train():
                         epoch_test_acc += test_acc
 
                 ACC = (TP + TN) / (TP + TN + FP + FN)  # 准确率
-                SEN = TP / (TP + FN)  # 灵敏度
-                SPE = TN / (TN + FP)  # 特异性
-                if TP + FP == 0:
-                    PPV = -1
-                else:
-                    PPV = TP / (TP + FP)  # 正预测率
-                if TN + FN == 0:
-                    NPV = -1
-                else:
-                    NPV = TN / (TN + FN)  # 负预测率
-                if PPV + SEN == 0:
-                    F1 = -1
-                else:
-                    F1 = 2 * (PPV * SEN) / (PPV + SEN)
+                SEN = -1 if TP + FN == 0 else TP / (TP + FN)  # 灵敏度
+                SPE = -1 if TN + FP == 0 else TN / (TN + FP)  # 特异性
+                PPV = -1 if TP + FP == 0 else TP / (TP + FP)  # 正预测率
+                NPV = -1 if TN + FN == 0 else TN / (TN + FN)  # 负预测率
+                F1 = -1 if PPV + SEN == 0 else 2 * (PPV * SEN) / (PPV + SEN)  # F1
+
                 SEN_list.append(SEN)
                 SPE_list.append(SPE)
                 PPV_list.append(PPV)
@@ -211,8 +209,11 @@ def Train():
                 if ACC > best_acc:
                     best_acc = ACC
 
-                AUC = roc.GetROC(Y_train, Y_pred, epoch_i + 1, k + 1)
+                AUC,FPR,TPR = roc.GetROC(torch.as_tensor(Y_train), torch.as_tensor(Y_pred), epoch_i + 1, k + 1)
                 AUC_list.append(AUC)
+                FPR_list.append(FPR)
+                TPR_list.append(TPR)
+
 
                 # if epoch_i + 1 == 50:
                 #     torch.save(module.state_dict(), f"../pretrain_module/pretrain_{k + 1}.pt")
@@ -262,6 +263,8 @@ def Train():
             NPV_list_kf.append(NPV_list)
             F1_list_kf.append(F1_list)
             AUC_list_kf.append(AUC_list)
+            FPR_list_kf.append(FPR_list)
+            TPR_list_kf.append(TPR_list)
 
             k += 1
             SaveArgsInfo()
@@ -289,7 +292,8 @@ def Train():
         res['负预测率'] = avg_npv
         res['F1分数'] = avg_f1
         res['AUC'] = avg_auc
-
+        res['FPR'] = FPR_list_kf
+        res['TPR'] = TPR_list_kf
         res.to_csv(f"../result/result_{institution}.csv", encoding='utf_8_sig')
 
         # 传结果list格式： [train(list), test(list)]

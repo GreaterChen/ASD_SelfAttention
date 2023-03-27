@@ -58,6 +58,7 @@ def SVM():
         fpr, tpr, thresholds = roc_curve(y_test, y_pred)
         AUC = auc(fpr, tpr)
         auc_list.append(AUC)
+
         f1_list.append(f1)
         acc_list.append(acc)
         sen_list.append(sen)

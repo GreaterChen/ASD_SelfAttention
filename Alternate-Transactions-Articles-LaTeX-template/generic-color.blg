@@ -1,0 +1,61 @@
+This is BibTeX, Version 0.99d (TeX Live 2022)
+Capacity: max_strings=200000, hash_size=200000, hash_prime=170003
+The top-level auxiliary file: generic-color.aux
+The style file: IEEEtran.bst
+Reallocated singl_function (elt_size=4) to 100 items from 50.
+Reallocated singl_function (elt_size=4) to 100 items from 50.
+Reallocated singl_function (elt_size=4) to 100 items from 50.
+Reallocated wiz_functions (elt_size=4) to 6000 items from 3000.
+Reallocated singl_function (elt_size=4) to 100 items from 50.
+Database file #1: refs.bib
+Repeated entry---line 399 of file refs.bib
+ : @inproceedings{dvornek2017identifying
+ :                                      ,
+I'm skipping whatever remains of this entry
+-- IEEEtran.bst version 1.14 (2015/08/26) by Michael Shell.
+-- http://www.michaelshell.org/tex/ieeetran/bibtex/
+-- See the "IEEEtran_bst_HOWTO.pdf" manual for usage information.
+
+Done.
+You've used 42 entries,
+            4087 wiz_defined-function locations,
+            1067 strings with 18492 characters,
+and the built_in function-call counts, 37388 in all, are:
+= -- 3008
+> -- 1229
+< -- 308
++ -- 657
+- -- 250
+* -- 1864
+:= -- 5403
+add.period$ -- 86
+call.type$ -- 42
+change.case$ -- 42
+chr.to.int$ -- 645
+cite$ -- 42
+duplicate$ -- 2670
+empty$ -- 2651
+format.name$ -- 286
+if$ -- 8712
+int.to.chr$ -- 0
+int.to.str$ -- 42
+missing$ -- 509
+newline$ -- 149
+num.names$ -- 42
+pop$ -- 1156
+preamble$ -- 1
+purify$ -- 0
+quote$ -- 2
+skip$ -- 2851
+stack$ -- 0
+substring$ -- 1640
+swap$ -- 2313
+text.length$ -- 93
+text.prefix$ -- 0
+top$ -- 5
+type$ -- 42
+warning$ -- 0
+while$ -- 153
+width$ -- 44
+write$ -- 451
+(There was 1 error message)

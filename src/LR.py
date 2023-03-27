@@ -1,11 +1,14 @@
 import numpy as np
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import confusion_matrix, f1_score
 from sklearn.model_selection import train_test_split
+from ResultShow import DrawROC
+import args
 from args import *
 from sklearn import svm
 from requirements import *
 from utils import CheckOrder
-from ResultShow import DrawROC
 
 root_path = cc200_desktop
 # root_path = "/root/autodl-tmp/rois_aal_pkl_pearson/"
@@ -45,7 +48,7 @@ for train_index, test_index in tqdm(kf.split(X), desc="running", file=sys.stdout
     k += 1
     x_train, x_test = X[train_index], X[test_index]
     y_train, y_test = y[train_index], y[test_index]
-    predictor = svm.SVC(gamma='scale', C=1.0, decision_function_shape='ovr', kernel='rbf', probability=True)
+    predictor = LogisticRegression(max_iter=1000, penalty='l2')
     # 进行训练
     predictor.fit(x_train, y_train)
     y_pred = predictor.predict(x_test)
@@ -71,12 +74,8 @@ print("平均SEN：", np.mean(sen_list))
 print("平均SPE：", np.mean(spe_list))
 print("平均F1：", np.mean(f1_list))
 print("平均AUC：", np.mean(auc_list))
-
-for i in best_fpr:
-    print(i, end=',')
-for i in best_tpr:
-    print(i, end=',')
-
+print("best_fpr=", best_fpr)
+print("best_tpr=", best_tpr)
 DrawROC(best_fpr, best_tpr, best_auc)
 
 end_time = time.time()

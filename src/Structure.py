@@ -25,7 +25,7 @@ class Structure(nn.Module):
         self.middle_size = 50
         # 展开、降维模块
         self.desc_fc = nn.Sequential(
-            # nn.Linear(5800, 3000),
+            # nn.Linear(34800, 3000),
             nn.Linear(Windows_num * self.middle_size * Head_num, 3000),
             nn.ReLU(inplace=True),
             nn.Linear(3000, 1000),
@@ -49,10 +49,10 @@ class Structure(nn.Module):
         )
 
         self.AttentionFFNLn_Kandell_32 = nn.Sequential(
-            SelfAttention(Head_num, Vector_len, Vector_len, 500, last_layer=False),
-            AttentionWithFFNAndLn(500 * Head_num, 500 * Head_num * ffn_hidden_mult, 500 * Head_num, 500 * Head_num,
+            SelfAttention(Head_num, Vector_len, Vector_len, 400, last_layer=False),
+            AttentionWithFFNAndLn(400 * Head_num, 400 * Head_num * ffn_hidden_mult, 400 * Head_num, 400 * Head_num,
                                   dropout),
-            SelfAttention(Head_num, 500 * Head_num, 500, 200, last_layer=False),
+            SelfAttention(Head_num, 400 * Head_num, 400, 200, last_layer=False),
             AttentionWithFFNAndLn(200 * Head_num, 200 * Head_num * ffn_hidden_mult, 200 * Head_num, 200 * Head_num,
                                   dropout),
             SelfAttention(Head_num, 200 * Head_num, 200, self.middle_size, last_layer=False),
@@ -60,7 +60,7 @@ class Structure(nn.Module):
                                   self.middle_size * Head_num, self.middle_size * Head_num, dropout),
         )
 
-        self.AttentionFFNLn_Kandell_100 = nn.Sequential(
+        self.AttentionFFNLn_Kandell_50 = nn.Sequential(
             SelfAttention(Head_num, Vector_len, Vector_len, 50, last_layer=False),
             AttentionWithFFNAndLn(50 * Head_num, 50 * Head_num * ffn_hidden_mult, 50 * Head_num, 50 * Head_num,
                                   dropout),
@@ -72,13 +72,16 @@ class Structure(nn.Module):
                                   self.middle_size * Head_num, self.middle_size * Head_num, dropout),
         )
 
-        self.lstm = nn.LSTM(1024, 32, batch_first=True, dropout=0.5, num_layers=4)
+        self.lstm = nn.LSTM(800, 100, batch_first=True, dropout=0.5, num_layers=4)
         self.relu = nn.ReLU()
         self.dropout = nn.Dropout(0.5)
         self.linear = nn.Linear(1024, 100)
         self.linear_2 = nn.Linear(100, 10)
         self.linear_3 = nn.Linear(32, 2)
-        self.PositionalEncoding = PositionalEncoding(1024, 0.1, 116)
+        self.PositionalEncoding = PositionalEncoding(kendall_nums, 0.1, 116)
+        self.cla = SelfAttention(1, 100, 100, 100, last_layer=False)
+        self.cla2 = SelfAttention(1, 100, 100, 100, last_layer=False)
+        self.cla3 = SelfAttention(1, 100, 100, 50, last_layer=False)
 
         self.cnn = nn.Sequential(
             nn.AvgPool2d(kernel_size=(2, 2), stride=(2, 2)),
@@ -89,25 +92,45 @@ class Structure(nn.Module):
             nn.MaxPool2d(kernel_size=(2, 2), stride=(2, 2))
         )
         self.cnn_desc = nn.Sequential(
-            nn.Linear(576, 100),
+            nn.Linear(2304, 1000),
+            nn.ReLU(),
+            nn.Linear(1000, 300),
+            nn.ReLU(),
+            nn.Linear(300, 100),
             nn.ReLU(),
             nn.Linear(100, 2)
         )
         self.conv21 = nn.Conv3d(1, 1, 2, 2)
+
+        self.fcn = nn.Sequential(
+            nn.Linear(1024, 400),
+            nn.ReLU(),
+            nn.Linear(400, 100),
+            nn.ReLU(),
+            nn.Linear(100, 50),
+        )
 
     # ffn & layernorm with self-attention
 
     def attention_with_ffn_and_ln(self, x):
         x = x.float()
         log.info("AttentionFFNLn_Kandell_32 模块输入 x", x)
-        # x = self.PositionalEncoding(x)
-        x, (_, _) = self.lstm(x)
-        x = self.AttentionFFNLn_Kandell_32(x)  # [2, 116, 300]
+        x = self.PositionalEncoding(x)
+        x = self.AttentionFFNLn_Kandell_32(x) # [2, 116, 300]
         log.info("AttentionFFNLn_Kandell_32 模块输出", x)
         x = x.reshape(x.shape[0], -1)
         log.info("展平后维度 x", x)
         output = self.desc_fc(x)
+
         log.info("[结束] 结果维度 output", output)
+        return output
+
+    def cc200(self, x):
+        x = x.float()
+        print(x.shape)
+        x = self.AttentionFFNLn_Kandell_32(x)
+        x = x.reshape(x.shape[0], -1)
+        output = self.desc_cc200(x)
         return output
 
     def SAE(self, x):
@@ -135,4 +158,11 @@ class Structure(nn.Module):
         x = self.cnn(x)
         x = x.reshape(x.shape[0], -1)
         x = self.cnn_desc(x)
+        return x
+
+    def FCN(self, x):
+        x = x.float()
+        x = self.fcn(x)
+        x = x.reshape(x.shape[0], -1)
+        x = self.desc_fc(x)
         return x
